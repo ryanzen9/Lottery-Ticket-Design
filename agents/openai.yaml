@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lottery Ticket Design"
+  short_description: "一次探索六份界面原型，并按编号继续迭代"
+  default_prompt: "使用 $lottery-ticket-design 根据我的界面需求生成六份原型，并打开原型仪表盘供我挑选。"

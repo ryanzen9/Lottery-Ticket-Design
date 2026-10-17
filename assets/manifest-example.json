@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "title": "原型方案",
+    "brief": "演示批次：六种查看、比较和筛选原型的界面。"
+  },
+  "batches": [
+    {
+      "number": 1,
+      "title": "首轮",
+      "brief": "六种原型管理界面方向。",
+      "parentIds": [],
+      "ids": [
+        "P-001",
+        "P-002",
+        "P-003",
+        "P-004",
+        "P-005",
+        "P-006"
+      ]
+    }
+  ],
+  "prototypes": [
+    {
+      "id": "P-001",
+      "batch": 1,
+      "title": "策展墙",
+      "direction": "视觉优先",
+      "summary": "把六份方案当成作品陈列，先用整体视觉筛选方向。",
+      "layout": "不等宽策展网格，首稿占两行",
+      "palette": "暖灰纸面＋深墨文字",
+      "interaction": "卡片进入详情、按方向筛选",
+      "responsive": "桌面三列，手机两列",
+      "rationale": "适合设计初期快速建立整体偏好",
+      "tags": [
+        "策展",
+        "低密度"
+      ],
+      "parentIds": [],
+      "file": "prototypes/P-001.html"
+    },
+    {
+      "id": "P-002",
+      "batch": 1,
+      "title": "并排比较台",
+      "direction": "比较优先",
+      "summary": "让两份原型在相同视口下并排，用一致指标讨论差异。",
+      "layout": "双栏预览＋四项指标",
+      "palette": "深海蓝＋荧黄强调",
+      "interaction": "切换比较对象、选为偏好",
+      "responsive": "窄屏改为上下比较",
+      "rationale": "适合需要对照功能和布局取舍的评审",
+      "tags": [
+        "对照",
+        "结构化"
+      ],
+      "parentIds": [],
+      "file": "prototypes/P-002.html"
+    },
+    {
+      "id": "P-003",
+      "batch": 1,
+      "title": "流程板",
+      "direction": "进度优先",
+      "summary": "把原型放进探索、讨论、保留三个状态中推进决策。",
+      "layout": "三列看板＋状态卡片",
+      "palette": "浅砂色＋珊瑚红",
+      "interaction": "移动状态、添加反馈",
+      "responsive": "手机纵向堆叠看板",
+      "rationale": "适合多人协作与阶段性收敛",
+      "tags": [
+        "协作",
+        "看板"
+      ],
+      "parentIds": [],
+      "file": "prototypes/P-003.html"
+    },
+    {
+      "id": "P-004",
+      "batch": 1,
+      "title": "方向地图",
+      "direction": "关系优先",
+      "summary": "用坐标平面展示六个方向的视觉表达与任务密度。",
+      "layout": "二维地图＋浮动节点",
+      "palette": "深青绿＋浅薄荷",
+      "interaction": "筛选维度、点开节点",
+      "responsive": "手机转为双列节点列表",
+      "rationale": "适合发现已探索方向之间的空白",
+      "tags": [
+        "探索",
+        "关系图"
+      ],
+      "parentIds": [],
+      "file": "prototypes/P-004.html"
+    },
+    {
+      "id": "P-005",
+      "batch": 1,
+      "title": "沉浸审阅",
+      "direction": "单稿聚焦",
+      "summary": "一次只看一份大预览，旁边记录具体判断。",
+      "layout": "大画布＋评审侧栏＋底部缩略条",
+      "palette": "冷白＋靛蓝",
+      "interaction": "切换原型、保留方向、记录评论",
+      "responsive": "窄屏预览与备注纵向排列",
+      "rationale": "适合深入检查单个方案的页面细节",
+      "tags": [
+        "审阅",
+        "聚焦"
+      ],
+      "parentIds": [],
+      "file": "prototypes/P-005.html"
+    },
+    {
+      "id": "P-006",
+      "batch": 1,
+      "title": "决策矩阵",
+      "direction": "取舍优先",
+      "summary": "用相同评价标准给六个方向排序并解释保留理由。",
+      "layout": "可横向滚动的评分矩阵",
+      "palette": "灰绿＋森林绿",
+      "interaction": "选择候选、比较维度",
+      "responsive": "移动端保持表格横向滚动",
+      "rationale": "适合团队需要透明地说明决策依据",
+      "tags": [
+        "量化",
+        "决策"
+      ],
+      "parentIds": [],
+      "file": "prototypes/P-006.html"
+    }
+  ]
+}
