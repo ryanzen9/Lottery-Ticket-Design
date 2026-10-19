@@ -1,8 +1,19 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "project": {
     "title": "原型方案",
-    "brief": "演示批次：六种查看、比较和筛选原型的界面。"
+    "brief": "演示批次：六种查看、比较和筛选原型的界面。",
+    "designBrief": {
+      "goal": "让设计团队快速比较并筛选原型方向",
+      "audience": "产品设计师和参与评审的产品经理",
+      "coreTasks": "查看、比较、选择原型并继续下一轮迭代",
+      "platform": "桌面浏览器，兼顾窄屏",
+      "stylePreferences": "仪表盘极简深色；每份原型可探索不同视觉语言",
+      "interactionPreferences": "明确的选择与复制反馈，适度动效",
+      "mustHave": "预览、编号、设计元数据、批量勾选",
+      "constraints": "可离线打开的静态 HTML",
+      "prototypeCount": 6
+    }
   },
   "batches": [
     {
@@ -37,7 +48,31 @@
         "低密度"
       ],
       "parentIds": [],
-      "file": "prototypes/P-001.html"
+      "file": "prototypes/P-001/index.html",
+      "style": "策展式极简",
+      "motion": "轻微渐显，减少注意力转移",
+      "inspirations": [
+        {
+          "name": "Apple Human Interface Guidelines",
+          "url": "https://developer.apple.com/design/human-interface-guidelines/",
+          "aspect": "内容层级与留白",
+          "adaptation": "用于大幅预览与轻量说明的策展网格"
+        }
+      ],
+      "screens": [
+        {
+          "id": "main",
+          "title": "主界面",
+          "summary": "该设计方向的主要使用界面",
+          "file": "prototypes/P-001/screens/main.html"
+        },
+        {
+          "id": "detail",
+          "title": "方案详情",
+          "summary": "查看方案细节与设计依据",
+          "file": "prototypes/P-001/screens/detail.html"
+        }
+      ]
     },
     {
       "id": "P-002",
@@ -55,7 +90,25 @@
         "结构化"
       ],
       "parentIds": [],
-      "file": "prototypes/P-002.html"
+      "file": "prototypes/P-002/index.html",
+      "style": "分析型深色",
+      "motion": "比较对象切换时保持位置连续",
+      "inspirations": [
+        {
+          "name": "Fluent 2 Layout",
+          "url": "https://fluent2.microsoft.design/layout",
+          "aspect": "响应式空间关系",
+          "adaptation": "用于对齐双栏预览和评价维度"
+        }
+      ],
+      "screens": [
+        {
+          "id": "main",
+          "title": "主界面",
+          "summary": "该设计方向的主要使用界面",
+          "file": "prototypes/P-002/screens/main.html"
+        }
+      ]
     },
     {
       "id": "P-003",
@@ -73,7 +126,25 @@
         "看板"
       ],
       "parentIds": [],
-      "file": "prototypes/P-003.html"
+      "file": "prototypes/P-003/index.html",
+      "style": "温暖协作型",
+      "motion": "状态改变时短暂强调位置",
+      "inspirations": [
+        {
+          "name": "Atlassian Design System",
+          "url": "https://atlassian.design/get-started/about-atlassian-design-system",
+          "aspect": "组件标准与状态表达",
+          "adaptation": "用于可扫描的流程列与状态卡"
+        }
+      ],
+      "screens": [
+        {
+          "id": "main",
+          "title": "主界面",
+          "summary": "该设计方向的主要使用界面",
+          "file": "prototypes/P-003/screens/main.html"
+        }
+      ]
     },
     {
       "id": "P-004",
@@ -91,7 +162,25 @@
         "关系图"
       ],
       "parentIds": [],
-      "file": "prototypes/P-004.html"
+      "file": "prototypes/P-004/index.html",
+      "style": "探索型数据图",
+      "motion": "节点聚焦时显示关系",
+      "inspirations": [
+        {
+          "name": "Carbon Data Visualization",
+          "url": "https://www.carbondesignsystem.com/building-blocks/data-visualization/overview",
+          "aspect": "关系与空间图表分类",
+          "adaptation": "用于展示原型方向间的相对位置"
+        }
+      ],
+      "screens": [
+        {
+          "id": "main",
+          "title": "主界面",
+          "summary": "该设计方向的主要使用界面",
+          "file": "prototypes/P-004/screens/main.html"
+        }
+      ]
     },
     {
       "id": "P-005",
@@ -109,7 +198,25 @@
         "聚焦"
       ],
       "parentIds": [],
-      "file": "prototypes/P-005.html"
+      "file": "prototypes/P-005/index.html",
+      "style": "编辑式聚焦",
+      "motion": "切换稿件时保持预览框架稳定",
+      "inspirations": [
+        {
+          "name": "Material Design 3 Typography",
+          "url": "https://m3.material.io/styles/typography/applying-type",
+          "aspect": "标题与正文层级",
+          "adaptation": "用于大画布旁的精简评审信息"
+        }
+      ],
+      "screens": [
+        {
+          "id": "main",
+          "title": "主界面",
+          "summary": "该设计方向的主要使用界面",
+          "file": "prototypes/P-005/screens/main.html"
+        }
+      ]
     },
     {
       "id": "P-006",
@@ -127,7 +234,25 @@
         "决策"
       ],
       "parentIds": [],
-      "file": "prototypes/P-006.html"
+      "file": "prototypes/P-006/index.html",
+      "style": "理性决策型",
+      "motion": "筛选后平滑更新评价结果",
+      "inspirations": [
+        {
+          "name": "Carbon Dashboards",
+          "url": "https://www.carbondesignsystem.com/building-blocks/data-visualization/dashboards",
+          "aspect": "指标层级与一致性",
+          "adaptation": "用于统一标准的原型比较矩阵"
+        }
+      ],
+      "screens": [
+        {
+          "id": "main",
+          "title": "主界面",
+          "summary": "该设计方向的主要使用界面",
+          "file": "prototypes/P-006/screens/main.html"
+        }
+      ]
     }
   ]
 }

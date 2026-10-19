@@ -1,292 +1,985 @@
 <!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="查看、选择并继续迭代设计原型。">
-  <title>Lottery Ticket Design</title>
-  <style>
-    :root {
-      --bg: #101112; --surface: #151719; --surface-warm: #1b1d20; --surface-raised: #202327;
-      --fg: #f4f1e9; --fg-2: #cbc7bd; --muted: #918e87; --border: #2d3034; --border-soft: #24272a;
-      --accent: #a88aff; --accent-soft: #2b213f; --ink: #171819;
-      --font-display: Georgia, "Songti SC", "Noto Serif CJK SC", serif;
-      --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
-      --radius: 16px; --sidebar-width: 236px;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; color-scheme: dark; }
-    body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
-    button, select, textarea { font: inherit; }
-    button, a, select, input { -webkit-tap-highlight-color: transparent; }
-    button { cursor: pointer; }
-    a { color: inherit; }
-    .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    :focus-visible { outline: 2px solid #b69bff; outline-offset: 3px; }
-    [hidden] { display: none !important; }
-    .skip-link { position: fixed; z-index: 80; top: 12px; left: 12px; padding: 9px 14px; color: var(--ink); background: var(--fg); border-radius: 8px; transform: translateY(-160%); }
-    .skip-link:focus { transform: translateY(0); }
-    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; display: flex; width: var(--sidebar-width); flex-direction: column; padding: 26px 16px 20px; background: var(--surface); border-right: 1px solid var(--border); }
-    .brand { display: flex; align-items: center; gap: 12px; padding: 4px 10px 30px; text-decoration: none; }
-    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--border); border-radius: 9px; color: var(--fg); background: var(--surface-raised); font: 500 25px/1 var(--font-display); }
-    .brand strong { display: block; font-size: 12px; letter-spacing: -.01em; }
-    .nav-label { padding: 0 12px 10px; color: #777b80; font: 10px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
-    .nav-link { display: flex; min-height: 43px; align-items: center; gap: 12px; padding: 0 12px; border-radius: 9px; color: var(--muted); font-size: 13px; text-decoration: none; }
-    .nav-link:hover, .nav-link[aria-current="page"] { color: var(--fg); background: var(--surface-raised); }
-    .nav-link[aria-current="page"]::after { width: 5px; height: 5px; margin-left: auto; border-radius: 50%; background: var(--accent); content: ""; }
-    .nav-icon { width: 18px; height: 18px; color: var(--accent); }
-    .main { min-height: 100vh; margin-left: var(--sidebar-width); }
-    .content { width: min(100%, 1570px); margin: auto; padding: 50px clamp(24px, 4vw, 64px) 100px; }
-    .eyebrow { color: var(--accent); font: 11px/1.3 var(--font-mono); letter-spacing: .15em; text-transform: uppercase; }
-    .hero { padding-bottom: 25px; border-bottom: 1px solid var(--border); }
-    h1 { margin: 12px 0 0; font: 500 clamp(34px, 4.2vw, 56px)/1.12 var(--font-display); letter-spacing: -.035em; }
-    .brief-panel { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 14px; margin: 20px 0 28px; padding: 0; }
-    .brief-panel span { color: var(--muted); font: 11px/1.5 var(--font-mono); letter-spacing: .08em; }
-    .brief-panel p { margin: 0; color: var(--fg-2); overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-    .toolbar { position: sticky; top: 10px; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px 0; background: #101112ef; backdrop-filter: blur(18px); }
-    .toolbar-title { margin: 0 auto 0 5px; font-size: 14px; font-weight: 650; }
-    .toolbar-count { color: var(--muted); font-size: 12px; }
-    .toolbar select { max-width: 190px; min-height: 38px; padding: 0 35px 0 11px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); color: var(--fg); font-size: 12px; }
-    .button { min-height: 38px; padding: 0 13px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); color: var(--fg); font-size: 12px; font-weight: 600; }
-    .button:hover { border-color: var(--accent); }
-    .button.primary { border-color: var(--accent); background: var(--accent); color: var(--ink); }
-    .button.primary:hover { background: #c3adff; }
-    .button:disabled { opacity: .45; cursor: not-allowed; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
-    .card { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); transition: border-color .18s ease, transform .18s ease; }
-    .card:hover { border-color: var(--muted); transform: translateY(-2px); }
-    .card.is-selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
-    .card-preview { position: relative; height: clamp(200px, 19vw, 270px); overflow: hidden; border-bottom: 1px solid var(--border-soft); background: var(--surface-warm); }
-    .card-preview img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-    .card-preview iframe { width: 100%; height: 100%; border: 0; background: white; pointer-events: none; }
-    .card-preview::after { position: absolute; inset: auto 0 0; height: 32px; background: linear-gradient(transparent, #15171944); pointer-events: none; content: ""; }
-    .preview-link { position: absolute; z-index: 2; inset: 0; display: block; font-size: 0; }
-    .preview-link:focus-visible { outline-offset: -5px; }
-    .pick { position: absolute; z-index: 3; top: 12px; left: 12px; display: inline-flex; min-height: 34px; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid #ffffff50; border-radius: 7px; background: #111317e8; color: white; cursor: pointer; font-size: 11px; backdrop-filter: blur(8px); }
-    .pick input { width: 16px; height: 16px; margin: 0; accent-color: var(--accent); cursor: pointer; }
-    .number { position: absolute; z-index: 3; top: 12px; right: 12px; padding: 7px 9px; border: 1px solid #ffffff35; border-radius: 6px; background: #111317dc; color: white; font: 11px/1.2 var(--font-mono); }
-    .card-body { padding: 16px 18px 18px; }
-    .card-kicker { display: flex; justify-content: space-between; gap: 10px; color: var(--accent); font: 10px/1.4 var(--font-mono); letter-spacing: .04em; }
-    .card h2 { margin: 7px 0 8px; font: 500 clamp(20px, 1.8vw, 25px)/1.25 var(--font-display); }
-    .summary { margin: 0 0 13px; color: var(--fg-2); font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-    .meta { display: grid; gap: 8px; margin: 0; padding: 13px 0 0; border-top: 1px solid var(--border-soft); }
-    .meta div { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 6px; }
-    .meta dt { color: var(--muted); font-size: 11px; }
-    .meta dd { margin: 0; color: var(--fg-2); font-size: 11px; overflow-wrap: anywhere; }
-    .card details { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
-    .card summary { color: var(--fg-2); cursor: pointer; font-size: 11px; }
-    .more { display: grid; gap: 9px; margin: 10px 0 0; color: var(--fg-2); font-size: 11px; }
-    .more div { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 6px; }
-    .more dt { color: var(--muted); }
-    .more dd { margin: 0; overflow-wrap: anywhere; }
-    .handoff { display: grid; grid-template-columns: minmax(0, .8fr) minmax(280px, 1.2fr); gap: 24px; margin-top: 32px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-    .handoff h2 { margin: 0 0 8px; font: 500 25px/1.2 var(--font-display); }
-    .handoff p { margin: 0; color: var(--fg-2); font-size: 12px; }
-    .handoff-field label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 11px; }
-    .handoff-field textarea { display: block; width: 100%; min-height: 86px; resize: vertical; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font: 12px/1.5 var(--font-mono); }
-    .handoff-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    .feedback { min-height: 21px; margin-top: 10px !important; color: var(--accent) !important; font-size: 11px !important; }
-    .empty { padding: 55px 20px; border: 1px dashed var(--border); border-radius: var(--radius); color: var(--muted); text-align: center; }
-    @media (max-width: 1250px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 800px) {
-      .sidebar { width: 70px; padding: 22px 8px; align-items: center; }
-      .brand { padding: 0 0 28px; }
-      .brand-copy, .nav-label, .nav-text { display: none; }
-      .nav-link { width: 48px; justify-content: center; padding: 0; }
-      .nav-link[aria-current="page"]::after { display: none; }
-      .main { margin-left: 70px; }
-      .content { padding-top: 34px; }
-    }
-    @media (max-width: 650px) {
-      .sidebar { position: static; width: 100%; height: 62px; flex-direction: row; justify-content: space-between; padding: 9px 16px; border-right: 0; border-bottom: 1px solid var(--border); }
-      .brand { padding: 0; }
-      .brand-copy { display: block; }
-      .sidebar nav { display: flex; }
-      .sidebar nav a { display: inline-flex; }
-      .main { margin-left: 0; }
-      .content { padding: 26px 16px 70px; }
-      .brief-panel { grid-template-columns: 1fr; gap: 5px; }
-      .toolbar { top: 4px; }
-      .toolbar-title { width: 100%; }
-      .toolbar select { flex: 1; }
-      .grid, .handoff { grid-template-columns: 1fr; }
-      .card-preview { height: 230px; }
-      .handoff { padding: 18px; }
-    }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }
-  </style>
-</head>
-<body>
-  <a class="skip-link" href="#workspace">跳到内容</a>
-  <aside class="sidebar" aria-label="工作区导航">
-    <a class="brand" href="#workspace"><span class="brand-mark" aria-hidden="true">L</span><span class="brand-copy"><strong>Lottery Ticket Design</strong></span></a>
-    <nav aria-label="页面导航">
-      <div class="nav-label">WORKSPACE</div>
-      <a class="nav-link" href="#workspace" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span class="nav-text">原型总览</span></a>
-    </nav>
-  </aside>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="查看、选择并继续迭代设计原型。" />
+    <title>Lottery Ticket Design</title>
+    <style>
+      :root {
+        --bg: #101112;
+        --surface: #151719;
+        --surface-warm: #1b1d20;
+        --surface-raised: #202327;
+        --fg: #f4f1e9;
+        --fg-2: #cbc7bd;
+        --muted: #918e87;
+        --border: #2d3034;
+        --border-soft: #24272a;
+        --accent: #a88aff;
+        --accent-soft: #2b213f;
+        --ink: #171819;
+        --font-display: Georgia, "Songti SC", "Noto Serif CJK SC", serif;
+        --font-body:
+          -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+          system-ui, sans-serif;
+        --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+        --radius: 16px;
+        --sidebar-width: 236px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.55 var(--font-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button,
+      a,
+      select,
+      input {
+        -webkit-tap-highlight-color: transparent;
+      }
+      button {
+        cursor: pointer;
+      }
+      a {
+        color: inherit;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        border: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      :focus-visible {
+        outline: 2px solid #b69bff;
+        outline-offset: 3px;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .skip-link {
+        position: fixed;
+        z-index: 80;
+        top: 12px;
+        left: 12px;
+        padding: 9px 14px;
+        color: var(--ink);
+        background: var(--fg);
+        border-radius: 8px;
+        transform: translateY(-160%);
+      }
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 20;
+        display: flex;
+        width: var(--sidebar-width);
+        flex-direction: column;
+        padding: 26px 16px 20px;
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 10px 30px;
+        text-decoration: none;
+      }
+      .brand-mark {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        color: var(--fg);
+        background: var(--surface-raised);
+        font: 500 25px/1 var(--font-display);
+      }
+      .brand strong {
+        display: block;
+        font-size: 12px;
+        letter-spacing: -0.01em;
+      }
+      .nav-label {
+        padding: 0 12px 10px;
+        color: #777b80;
+        font: 10px/1.2 var(--font-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .nav-link {
+        display: flex;
+        min-height: 43px;
+        align-items: center;
+        gap: 12px;
+        padding: 0 12px;
+        border-radius: 9px;
+        color: var(--muted);
+        font-size: 13px;
+        text-decoration: none;
+      }
+      .nav-link:hover,
+      .nav-link[aria-current="page"] {
+        color: var(--fg);
+        background: var(--surface-raised);
+      }
+      .nav-link[aria-current="page"]::after {
+        width: 5px;
+        height: 5px;
+        margin-left: auto;
+        border-radius: 50%;
+        background: var(--accent);
+        content: "";
+      }
+      .nav-icon {
+        width: 18px;
+        height: 18px;
+        color: var(--accent);
+      }
+      .main {
+        min-height: 100vh;
+        margin-left: var(--sidebar-width);
+      }
+      .content {
+        width: min(100%, 1570px);
+        margin: auto;
+        padding: 50px clamp(24px, 4vw, 64px) 100px;
+      }
+      .eyebrow {
+        color: var(--accent);
+        font: 11px/1.3 var(--font-mono);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .hero {
+        padding-bottom: 25px;
+        border-bottom: 1px solid var(--border);
+      }
+      h1 {
+        margin: 12px 0 0;
+        font: 500 clamp(34px, 4.2vw, 56px)/1.12 var(--font-display);
+        letter-spacing: -0.035em;
+      }
+      .brief-panel {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 14px;
+        margin: 20px 0 28px;
+        padding: 0;
+      }
+      .brief-panel span {
+        color: var(--muted);
+        font: 11px/1.5 var(--font-mono);
+        letter-spacing: 0.08em;
+      }
+      .brief-panel p {
+        margin: 0;
+        color: var(--fg-2);
+        overflow-wrap: anywhere;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+      .toolbar {
+        position: sticky;
+        top: 10px;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        padding: 10px 0;
+        background: #101112ef;
+        backdrop-filter: blur(18px);
+      }
+      .toolbar-title {
+        margin: 0 auto 0 5px;
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .toolbar-count {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .toolbar select {
+        max-width: 190px;
+        min-height: 38px;
+        padding: 0 35px 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-raised);
+        color: var(--fg);
+        font-size: 12px;
+      }
+      .button {
+        min-height: 38px;
+        padding: 0 13px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-raised);
+        color: var(--fg);
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .button:hover {
+        border-color: var(--accent);
+      }
+      .button.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--ink);
+      }
+      .button.primary:hover {
+        background: #c3adff;
+      }
+      .button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+      .card {
+        position: relative;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        transition:
+          border-color 0.18s ease,
+          transform 0.18s ease;
+      }
+      .card:hover {
+        border-color: var(--muted);
+        transform: translateY(-2px);
+      }
+      .card.is-selected {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent) inset;
+      }
+      .card-preview {
+        position: relative;
+        height: clamp(200px, 19vw, 270px);
+        overflow: hidden;
+        border-bottom: 1px solid var(--border-soft);
+        background: var(--surface-warm);
+      }
+      .card-preview img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+      }
+      .card-preview iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: white;
+        pointer-events: none;
+      }
+      .card-preview::after {
+        position: absolute;
+        inset: auto 0 0;
+        height: 32px;
+        background: linear-gradient(transparent, #15171944);
+        pointer-events: none;
+        content: "";
+      }
+      .card-open {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        display: block;
+        font-size: 0;
+      }
+      .card-open:focus-visible {
+        outline-offset: -5px;
+      }
+      .pick {
+        position: absolute;
+        z-index: 3;
+        top: 12px;
+        left: 12px;
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        gap: 7px;
+        padding: 0 10px;
+        border: 1px solid #ffffff50;
+        border-radius: 7px;
+        background: #111317e8;
+        color: white;
+        cursor: pointer;
+        font-size: 11px;
+        backdrop-filter: blur(8px);
+      }
+      .pick input {
+        width: 16px;
+        height: 16px;
+        margin: 0;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      .number {
+        position: absolute;
+        z-index: 3;
+        top: 12px;
+        right: 12px;
+        padding: 7px 9px;
+        border: 1px solid #ffffff35;
+        border-radius: 6px;
+        background: #111317dc;
+        color: white;
+        font: 11px/1.2 var(--font-mono);
+        pointer-events: none;
+      }
+      .card-body {
+        padding: 16px 18px 18px;
+      }
+      .card-kicker {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--accent);
+        font: 10px/1.4 var(--font-mono);
+        letter-spacing: 0.04em;
+      }
+      .card h2 {
+        margin: 7px 0 8px;
+        font: 500 clamp(20px, 1.8vw, 25px)/1.25 var(--font-display);
+      }
+      .summary {
+        margin: 0 0 13px;
+        color: var(--fg-2);
+        font-size: 12px;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+      .meta {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 13px 0 0;
+        border-top: 1px solid var(--border-soft);
+      }
+      .meta div {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 6px;
+      }
+      .meta dt {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .meta dd {
+        margin: 0;
+        color: var(--fg-2);
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+      .card details {
+        position: relative;
+        z-index: 2;
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border-soft);
+      }
+      .card summary {
+        color: var(--fg-2);
+        cursor: pointer;
+        font-size: 11px;
+      }
+      .more {
+        display: grid;
+        gap: 9px;
+        margin: 10px 0 0;
+        color: var(--fg-2);
+        font-size: 11px;
+      }
+      .more div {
+        display: grid;
+        grid-template-columns: 58px minmax(0, 1fr);
+        gap: 6px;
+      }
+      .more dt {
+        color: var(--muted);
+      }
+      .more dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+      .more a {
+        color: var(--fg);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .handoff {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(280px, 1.2fr);
+        gap: 24px;
+        margin-top: 32px;
+        padding: 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+      }
+      .handoff h2 {
+        margin: 0 0 8px;
+        font: 500 25px/1.2 var(--font-display);
+      }
+      .handoff p {
+        margin: 0;
+        color: var(--fg-2);
+        font-size: 12px;
+      }
+      .handoff-field label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .handoff-field textarea {
+        display: block;
+        width: 100%;
+        min-height: 86px;
+        resize: vertical;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 12px/1.5 var(--font-mono);
+      }
+      .handoff-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .feedback {
+        min-height: 21px;
+        margin-top: 10px !important;
+        color: var(--accent) !important;
+        font-size: 11px !important;
+      }
+      .empty {
+        padding: 55px 20px;
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        color: var(--muted);
+        text-align: center;
+      }
+      @media (max-width: 1250px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 800px) {
+        .sidebar {
+          width: 70px;
+          padding: 22px 8px;
+          align-items: center;
+        }
+        .brand {
+          padding: 0 0 28px;
+        }
+        .brand-copy,
+        .nav-label,
+        .nav-text {
+          display: none;
+        }
+        .nav-link {
+          width: 48px;
+          justify-content: center;
+          padding: 0;
+        }
+        .nav-link[aria-current="page"]::after {
+          display: none;
+        }
+        .main {
+          margin-left: 70px;
+        }
+        .content {
+          padding-top: 34px;
+        }
+      }
+      @media (max-width: 650px) {
+        .sidebar {
+          position: static;
+          width: 100%;
+          height: 62px;
+          flex-direction: row;
+          justify-content: space-between;
+          padding: 9px 16px;
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .brand {
+          padding: 0;
+        }
+        .brand-copy {
+          display: block;
+        }
+        .sidebar nav {
+          display: flex;
+        }
+        .sidebar nav a {
+          display: inline-flex;
+        }
+        .main {
+          margin-left: 0;
+        }
+        .content {
+          padding: 26px 16px 70px;
+        }
+        .brief-panel {
+          grid-template-columns: 1fr;
+          gap: 5px;
+        }
+        .toolbar {
+          top: 4px;
+        }
+        .toolbar-title {
+          width: 100%;
+        }
+        .toolbar select {
+          flex: 1;
+        }
+        .grid,
+        .handoff {
+          grid-template-columns: 1fr;
+        }
+        .card-preview {
+          height: 230px;
+        }
+        .handoff {
+          padding: 18px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+          animation-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">跳到内容</a>
+    <aside class="sidebar" aria-label="工作区导航">
+      <a class="brand" href="#workspace"
+        ><span class="brand-mark" aria-hidden="true">L</span
+        ><span class="brand-copy"
+          ><strong>Lottery Ticket Design</strong></span
+        ></a
+      >
+      <nav aria-label="页面导航">
+        <div class="nav-label">WORKSPACE</div>
+        <a class="nav-link" href="#workspace" aria-current="page"
+          ><svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" /></svg
+          ><span class="nav-text">原型总览</span></a
+        >
+      </nav>
+    </aside>
 
-  <main class="main" id="workspace">
-    <div class="content">
-      <header class="hero">
-        <div class="eyebrow" id="hero-eyebrow">ROUND 01 / 6 PROTOTYPES</div>
-        <h1 id="project-title">原型总览</h1>
-      </header>
-      <section class="brief-panel" aria-label="设计需求"><span>需求</span><p id="project-brief"></p></section>
-      <div class="toolbar" aria-label="原型操作">
-        <strong class="toolbar-title" id="batch-title">当前批次</strong>
-        <span class="toolbar-count" id="selection-count">已选 0 份</span>
-        <label class="sr-only" for="batch-filter">查看批次</label>
-        <select id="batch-filter" aria-label="查看批次"></select>
-        <button class="button" id="clear-button" type="button">清空选择</button>
-        <button class="button primary" id="copy-button" type="button">复制编号</button>
+    <main class="main" id="workspace">
+      <div class="content">
+        <header class="hero">
+          <div class="eyebrow" id="hero-eyebrow">PROTOTYPES</div>
+          <h1 id="project-title">原型总览</h1>
+        </header>
+        <section class="brief-panel" aria-label="设计需求">
+          <span>需求</span>
+          <p id="project-brief"></p>
+        </section>
+        <div class="toolbar" aria-label="原型操作">
+          <strong class="toolbar-title" id="batch-title">当前批次</strong>
+          <span class="toolbar-count" id="selection-count">已选 0 份</span>
+          <label class="sr-only" for="batch-filter">查看批次</label>
+          <select id="batch-filter" aria-label="查看批次"></select>
+          <button class="button" id="clear-button" type="button">
+            清空选择
+          </button>
+          <button class="button primary" id="copy-button" type="button">
+            复制编号
+          </button>
+        </div>
+        <div class="grid" id="prototype-grid" aria-label="原型列表"></div>
+        <p class="empty" id="empty" hidden>这一轮还没有原型。</p>
+
+        <section
+          class="handoff"
+          id="handoff"
+          aria-labelledby="handoff-title"
+          hidden
+        >
+          <div>
+            <h2 id="handoff-title">继续迭代</h2>
+            <p>勾选后自动复制编号。</p>
+          </div>
+          <div class="handoff-field">
+            <label for="handoff-text">给 agent 的指令</label
+            ><textarea
+              id="handoff-text"
+              readonly
+              aria-describedby="copy-feedback"
+            ></textarea>
+            <div class="handoff-actions">
+              <button class="button" id="copy-prompt-button" type="button">
+                复制完整指令</button
+              ><button
+                class="button"
+                id="select-text-button"
+                type="button"
+                hidden
+              >
+                选中文字
+              </button>
+            </div>
+            <p
+              class="feedback"
+              id="copy-feedback"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </div>
+        </section>
       </div>
-      <div class="grid" id="prototype-grid" aria-label="原型列表"></div>
-      <p class="empty" id="empty" hidden>这一轮还没有原型。</p>
+    </main>
 
-      <section class="handoff" id="handoff" aria-labelledby="handoff-title" hidden>
-        <div><h2 id="handoff-title">继续迭代</h2><p>勾选后自动复制编号。</p></div>
-        <div class="handoff-field"><label for="handoff-text">给 agent 的指令</label><textarea id="handoff-text" readonly aria-describedby="copy-feedback"></textarea><div class="handoff-actions"><button class="button" id="copy-prompt-button" type="button">复制完整指令</button><button class="button" id="select-text-button" type="button" hidden>选中文字</button></div><p class="feedback" id="copy-feedback" role="status" aria-live="polite"></p></div>
-      </section>
-    </div>
-  </main>
+    <script type="application/json" id="prototype-data">
+      __BOARD_DATA_JSON__
+    </script>
+    <script>
+      (() => {
+        "use strict";
+        const data = JSON.parse(
+          document.getElementById("prototype-data").textContent,
+        );
+        const selected = new Set();
+        const grid = document.getElementById("prototype-grid");
+        const filter = document.getElementById("batch-filter");
+        const output = document.getElementById("handoff-text");
+        const feedback = document.getElementById("copy-feedback");
+        let copyQueue = Promise.resolve();
 
-  <script type="application/json" id="prototype-data">__BOARD_DATA_JSON__</script>
-  <script>
-    (() => {
-      'use strict';
-      const data = JSON.parse(document.getElementById('prototype-data').textContent);
-      const selected = new Set();
-      const grid = document.getElementById('prototype-grid');
-      const filter = document.getElementById('batch-filter');
-      const output = document.getElementById('handoff-text');
-      const feedback = document.getElementById('copy-feedback');
-      let copyQueue = Promise.resolve();
+        document.title = data.project.title + " · Lottery Ticket Design";
+        document.getElementById("project-title").textContent =
+          data.project.title;
+        document.getElementById("project-brief").textContent =
+          data.project.brief || "等待输入设计需求。";
+        const latest = data.batches.at(-1);
+        document.getElementById("hero-eyebrow").textContent = latest
+          ? `ROUND ${String(latest.number).padStart(2, "0")} / ${latest.ids.length} PROTOTYPES`
+          : "PROTOTYPES";
 
-      document.title = data.project.title + ' · Lottery Ticket Design';
-      document.getElementById('project-title').textContent = data.project.title;
-      document.getElementById('project-brief').textContent = data.project.brief || '等待输入设计需求。';
-      const latest = data.batches.at(-1);
-      document.getElementById('hero-eyebrow').textContent = latest ? `ROUND ${String(latest.number).padStart(2, '0')} / ${latest.ids.length} PROTOTYPES` : 'PROTOTYPES';
+        const allOption = new Option("所有批次", "all");
+        filter.add(allOption);
+        data.batches
+          .slice()
+          .reverse()
+          .forEach((batch) =>
+            filter.add(
+              new Option(
+                `第 ${batch.number} 轮 · ${batch.ids.length} 稿`,
+                String(batch.number),
+              ),
+            ),
+          );
+        filter.value = latest ? String(latest.number) : "all";
 
-      const allOption = new Option('所有批次', 'all');
-      filter.add(allOption);
-      data.batches.slice().reverse().forEach(batch => filter.add(new Option(`第 ${batch.number} 轮 · ${batch.ids.length} 稿`, String(batch.number))));
-      filter.value = latest ? String(latest.number) : 'all';
-
-      function element(tag, className, value) {
-        const node = document.createElement(tag);
-        if (className) node.className = className;
-        if (value !== undefined) node.textContent = value;
-        return node;
-      }
-      function metaRow(dl, label, value) {
-        const row = element('div');
-        row.append(element('dt', '', label), element('dd', '', value || '—'));
-        dl.append(row);
-      }
-      function selectedIds() { return data.prototypes.filter(item => selected.has(item.id)).map(item => item.id); }
-      function promptText() {
-        const ids = selectedIds();
-        if (!ids.length) return '请先勾选一份或多份原型。';
-        const locationPath = decodeURIComponent(new URL('.', window.location.href).pathname);
-        return `使用 $lottery-ticket-design 继续这个原型项目：${locationPath}\n参考编号：${ids.join(', ')}\n请结合我接下来的反馈，在这些方向的基础上再生成 6 份不同的原型，并保留旧批次。`;
-      }
-      function syncSelection() {
-        const ids = selectedIds();
-        document.getElementById('selection-count').textContent = `已选 ${ids.length} 份`;
-        document.getElementById('clear-button').hidden = ids.length === 0;
-        document.getElementById('handoff').hidden = ids.length === 0;
-        output.value = promptText();
-        document.querySelectorAll('.card').forEach(card => card.classList.toggle('is-selected', selected.has(card.dataset.id)));
-      }
-      async function writeClipboard(value) {
-        if (navigator.clipboard && window.isSecureContext) {
-          try { await navigator.clipboard.writeText(value); return true; } catch (_) { /* fall through */ }
+        function element(tag, className, value) {
+          const node = document.createElement(tag);
+          if (className) node.className = className;
+          if (value !== undefined) node.textContent = value;
+          return node;
         }
-        const helper = document.createElement('textarea');
-        helper.value = value;
-        helper.setAttribute('readonly', '');
-        helper.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0';
-        document.body.append(helper);
-        helper.select();
-        let ok = false;
-        try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
-        helper.remove();
-        return ok;
-      }
-      function queueCopy(value, message) {
-        copyQueue = copyQueue.catch(() => {}).then(async () => {
-          const ok = await writeClipboard(value);
-          document.getElementById('select-text-button').hidden = ok;
-          feedback.textContent = ok ? message : '复制受限。请选中文字后手动复制。';
-        });
-      }
-      function renderCard(item) {
-        const card = element('article', 'card');
-        card.dataset.id = item.id;
-        const visual = element('div', 'card-preview');
-        if (item.preview) {
-          const img = element('img'); img.src = item.preview; img.alt = `${item.title} 原型截图`; img.loading = 'lazy'; visual.append(img);
-        } else {
-          const frame = element('iframe'); frame.src = item.file; frame.title = `${item.title} 缩略预览`; frame.loading = 'lazy'; frame.tabIndex = -1; visual.append(frame);
+        function metaRow(dl, label, value) {
+          const row = element("div");
+          row.append(element("dt", "", label), element("dd", "", value || "—"));
+          dl.append(row);
         }
-        const link = element('a', 'preview-link', `打开 ${item.id} ${item.title}`);
-        link.href = item.file; link.target = '_blank'; link.rel = 'noopener';
-        const pick = element('label', 'pick');
-        const checkbox = element('input'); checkbox.type = 'checkbox'; checkbox.value = item.id; checkbox.checked = selected.has(item.id); checkbox.setAttribute('aria-label', `选择 ${item.id} ${item.title}`);
-        checkbox.addEventListener('change', () => {
-          checkbox.checked ? selected.add(item.id) : selected.delete(item.id);
-          syncSelection();
+        function inspirationRows(dl, references) {
+          (references || []).forEach((reference, index) => {
+            const row = element("div");
+            const description = element("dd");
+            const name = element(
+              reference.url ? "a" : "span",
+              "",
+              reference.name,
+            );
+            if (reference.url) {
+              name.href = reference.url;
+              name.target = "_blank";
+              name.rel = "noopener noreferrer";
+            }
+            description.append(
+              name,
+              document.createTextNode(
+                ` · ${reference.aspect} → ${reference.adaptation}`,
+              ),
+            );
+            row.append(
+              element("dt", "", index === 0 ? "参考" : ""),
+              description,
+            );
+            dl.append(row);
+          });
+        }
+        function fileRow(dl, label, path) {
+          const row = element("div");
+          const description = element("dd");
+          const link = element("a", "", path.split("/").at(-1));
+          link.href = path;
+          link.target = "_blank";
+          link.rel = "noopener";
+          description.append(link);
+          row.append(element("dt", "", label), description);
+          dl.append(row);
+        }
+        function selectedIds() {
+          return data.prototypes
+            .filter((item) => selected.has(item.id))
+            .map((item) => item.id);
+        }
+        function promptText() {
           const ids = selectedIds();
-          if (ids.length) queueCopy(ids.join(', '), `已自动复制 ${ids.length} 个编号：${ids.join(', ')}`);
-          else feedback.textContent = '选择已清空。';
+          if (!ids.length) return "请先勾选一份或多份原型。";
+          const locationPath = decodeURIComponent(
+            new URL(".", window.location.href).pathname,
+          );
+          const count = latest?.ids.length || 6;
+          return `使用 $lottery-ticket-design 继续这个原型项目：${locationPath}\n参考编号：${ids.join(", ")}\n请结合我接下来的反馈，在这些方向的基础上再生成 ${count} 份不同的原型，并保留旧批次。`;
+        }
+        function syncSelection() {
+          const ids = selectedIds();
+          document.getElementById("selection-count").textContent =
+            `已选 ${ids.length} 份`;
+          document.getElementById("clear-button").hidden = ids.length === 0;
+          document.getElementById("handoff").hidden = ids.length === 0;
+          output.value = promptText();
+          document
+            .querySelectorAll(".card")
+            .forEach((card) =>
+              card.classList.toggle(
+                "is-selected",
+                selected.has(card.dataset.id),
+              ),
+            );
+        }
+        async function writeClipboard(value) {
+          if (navigator.clipboard && window.isSecureContext) {
+            try {
+              await navigator.clipboard.writeText(value);
+              return true;
+            } catch (_) {
+              /* fall through */
+            }
+          }
+          const helper = document.createElement("textarea");
+          helper.value = value;
+          helper.setAttribute("readonly", "");
+          helper.style.cssText = "position:fixed;top:0;left:-9999px;opacity:0";
+          document.body.append(helper);
+          helper.select();
+          let ok = false;
+          try {
+            ok = document.execCommand("copy");
+          } catch (_) {
+            ok = false;
+          }
+          helper.remove();
+          return ok;
+        }
+        function queueCopy(value, message) {
+          copyQueue = copyQueue
+            .catch(() => {})
+            .then(async () => {
+              const ok = await writeClipboard(value);
+              document.getElementById("select-text-button").hidden = ok;
+              feedback.textContent = ok
+                ? message
+                : "复制受限。请选中文字后手动复制。";
+            });
+        }
+        function renderCard(item) {
+          const card = element("article", "card");
+          card.dataset.id = item.id;
+          const visual = element("div", "card-preview");
+          const firstScreen = item.screens?.[0];
+          const preview = item.preview || firstScreen?.preview;
+          if (preview) {
+            const img = element("img");
+            img.src = preview;
+            img.alt = `${item.title} 设计预览`;
+            img.loading = "lazy";
+            visual.append(img);
+          } else {
+            const frame = element("iframe");
+            frame.src = firstScreen?.file || item.file;
+            frame.title = `${item.title} 缩略预览`;
+            frame.loading = "lazy";
+            frame.tabIndex = -1;
+            visual.append(frame);
+          }
+          const link = element(
+            "a",
+            "card-open",
+            `打开 ${item.id} ${item.title} 设计画板`,
+          );
+          link.href = item.file;
+          const pick = element("label", "pick");
+          const checkbox = element("input");
+          checkbox.type = "checkbox";
+          checkbox.value = item.id;
+          checkbox.checked = selected.has(item.id);
+          checkbox.setAttribute("aria-label", `选择 ${item.id} ${item.title}`);
+          checkbox.addEventListener("change", () => {
+            checkbox.checked ? selected.add(item.id) : selected.delete(item.id);
+            syncSelection();
+            const ids = selectedIds();
+            if (ids.length)
+              queueCopy(
+                ids.join(", "),
+                `已自动复制 ${ids.length} 个编号：${ids.join(", ")}`,
+              );
+            else feedback.textContent = "选择已清空。";
+          });
+          pick.append(checkbox, element("span", "", "选择"));
+          visual.append(pick, element("span", "number", item.id));
+          const body = element("div", "card-body");
+          const kicker = element("div", "card-kicker");
+          kicker.append(element("span", "", item.direction));
+          if (firstScreen)
+            kicker.append(
+              element("span", "", `${item.screens.length} 个界面 ↗`),
+            );
+          body.append(
+            kicker,
+            element("h2", "", item.title),
+            element("p", "summary", item.summary),
+          );
+          const meta = element("dl", "meta");
+          metaRow(meta, "布局", item.layout);
+          metaRow(meta, "交互", item.interaction);
+          body.append(meta);
+          const details = element("details");
+          details.append(element("summary", "", "更多信息"));
+          const more = element("dl", "more");
+          metaRow(more, "批次", `第 ${item.batch} 轮`);
+          if (item.style) metaRow(more, "风格", item.style);
+          metaRow(more, "色彩", item.palette);
+          if (item.motion) metaRow(more, "动效", item.motion);
+          metaRow(more, "响应式", item.responsive);
+          metaRow(more, "设计理由", item.rationale);
+          inspirationRows(more, item.inspirations);
+          if (item.tokens) fileRow(more, "令牌", item.tokens);
+          metaRow(more, "标签", (item.tags || []).join("、"));
+          metaRow(more, "参考编号", item.parentIds?.join(", ") || "首轮探索");
+          details.append(more);
+          body.append(details);
+          card.append(visual, body, link);
+          return card;
+        }
+        function renderGrid() {
+          const batch = filter.value === "all" ? null : Number(filter.value);
+          const visible =
+            batch === null
+              ? data.prototypes
+              : data.prototypes.filter((item) => item.batch === batch);
+          grid.replaceChildren(...visible.map(renderCard));
+          document.getElementById("empty").hidden = visible.length !== 0;
+          const batchData = data.batches.find((item) => item.number === batch);
+          document.getElementById("batch-title").textContent = batchData
+            ? `第 ${batch} 轮 · ${batchData.title}`
+            : "全部原型";
+          syncSelection();
+        }
+        filter.addEventListener("change", renderGrid);
+        document
+          .getElementById("clear-button")
+          .addEventListener("click", () => {
+            selected.clear();
+            renderGrid();
+            feedback.textContent = "选择已清空。";
+          });
+        document.getElementById("copy-button").addEventListener("click", () => {
+          const ids = selectedIds();
+          if (!ids.length) {
+            feedback.textContent = "请先勾选原型。";
+            return;
+          }
+          queueCopy(ids.join(", "), `已复制编号：${ids.join(", ")}`);
         });
-        pick.append(checkbox, element('span', '', '选择'));
-        visual.append(link, pick, element('span', 'number', item.id));
-        const body = element('div', 'card-body');
-        const kicker = element('div', 'card-kicker');
-        kicker.append(element('span', '', item.direction));
-        body.append(kicker, element('h2', '', item.title), element('p', 'summary', item.summary));
-        const meta = element('dl', 'meta');
-        metaRow(meta, '布局', item.layout); metaRow(meta, '交互', item.interaction);
-        body.append(meta);
-        const details = element('details');
-        details.append(element('summary', '', '更多信息'));
-        const more = element('dl', 'more');
-        metaRow(more, '批次', `第 ${item.batch} 轮`);
-        metaRow(more, '色彩', item.palette);
-        metaRow(more, '响应式', item.responsive);
-        metaRow(more, '设计理由', item.rationale);
-        metaRow(more, '标签', (item.tags || []).join('、'));
-        metaRow(more, '参考编号', item.parentIds?.join(', ') || '首轮探索');
-        details.append(more); body.append(details); card.append(visual, body);
-        return card;
-      }
-      function renderGrid() {
-        const batch = filter.value === 'all' ? null : Number(filter.value);
-        const visible = batch === null ? data.prototypes : data.prototypes.filter(item => item.batch === batch);
-        grid.replaceChildren(...visible.map(renderCard));
-        document.getElementById('empty').hidden = visible.length !== 0;
-        const batchData = data.batches.find(item => item.number === batch);
-        document.getElementById('batch-title').textContent = batchData ? `第 ${batch} 轮 · ${batchData.title}` : '全部原型';
-        syncSelection();
-      }
-      filter.addEventListener('change', renderGrid);
-      document.getElementById('clear-button').addEventListener('click', () => { selected.clear(); renderGrid(); feedback.textContent = '选择已清空。'; });
-      document.getElementById('copy-button').addEventListener('click', () => {
-        const ids = selectedIds();
-        if (!ids.length) { feedback.textContent = '请先勾选原型。'; return; }
-        queueCopy(ids.join(', '), `已复制编号：${ids.join(', ')}`);
-      });
-      document.getElementById('copy-prompt-button').addEventListener('click', () => {
-        if (!selected.size) { feedback.textContent = '请先勾选原型。'; return; }
-        queueCopy(promptText(), '已复制迭代指令。');
-      });
-      document.getElementById('select-text-button').addEventListener('click', () => { output.focus(); output.select(); feedback.textContent = '文字已选中，可以手动复制。'; });
-      renderGrid();
-    })();
-  </script>
-</body>
+        document
+          .getElementById("copy-prompt-button")
+          .addEventListener("click", () => {
+            if (!selected.size) {
+              feedback.textContent = "请先勾选原型。";
+              return;
+            }
+            queueCopy(promptText(), "已复制迭代指令。");
+          });
+        document
+          .getElementById("select-text-button")
+          .addEventListener("click", () => {
+            output.focus();
+            output.select();
+            feedback.textContent = "文字已选中，可以手动复制。";
+          });
+        renderGrid();
+      })();
+    </script>
+  </body>
 </html>
