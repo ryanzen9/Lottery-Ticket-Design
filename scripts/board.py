@@ -261,7 +261,8 @@ def render(project_dir: Path) -> None:
             if screen.get("preview"):
                 local_screen["preview"] = Path(screen["preview"]).relative_to(folder).as_posix()
             screens.append(local_screen)
-        payload = {"projectTitle": data["project"]["title"], "design": {
+        payload = {"projectTitle": data["project"]["title"],
+                   "skeletonDemo": data["project"].get("dashboardSkeleton") is True, "design": {
             "id": item["id"], "title": item["title"], "direction": item["direction"],
             "summary": item["summary"], "screens": screens,
             **{key: item.get(key, "") for key in KEY_DESIGN_FIELDS},

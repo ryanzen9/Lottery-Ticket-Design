@@ -10,6 +10,7 @@
       --fg: #292f2b; --fg-2: #606b64; --muted: #69746c;
       --border: #e0e6df; --border-soft: #edf0eb; --accent: #4c6355;
       --label-bg: #edf3f7; --label-fg: #526b7c; --label-border: #dde7ed;
+      --skeleton: #e6ebe5;
       --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; }
@@ -25,6 +26,7 @@
     .project-name { overflow: hidden; max-width: 55%; color: var(--fg-2); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
     .surface { min-height: calc(100vh - 116px); padding: clamp(24px, 3vw, 44px); border: 1px solid var(--border); border-radius: 32px; background: var(--surface); box-shadow: 0 20px 60px #293b2e0d, 0 3px 12px #293b2e05; }
     .hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 32px; }
+    .hero > div { min-width: 0; flex: 1; }
     .design-tags { display: flex; flex-wrap: wrap; gap: 8px; }
     .tag { padding: 4px 9px; border: 1px solid var(--label-border); border-radius: 9px; background: var(--label-bg); color: var(--label-fg); font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
     .tag.is-neutral { border-color: var(--border-soft); background: var(--surface-warm); color: var(--fg-2); }
@@ -69,6 +71,32 @@
     .open-label .icon { width: 13px; height: 13px; }
     .screen-link { position: absolute; inset: 0; font-size: 0; }
     .screen-link:focus-visible { outline-offset: -5px; }
+    .skeleton-line { display: block; width: 100%; height: 10px; border-radius: 6px; background: var(--skeleton); }
+    .skeleton-line.is-short { width: 44%; }
+    .skeleton-line.is-medium { width: 68%; }
+    .skeleton-line.is-long { width: 88%; }
+    .skeleton-line.is-project { width: 96px; }
+    .skeleton-line.is-label { width: 62px; }
+    .skeleton-line.is-count { width: 44px; }
+    .skeleton-line.is-title { width: 280px; max-width: 100%; height: clamp(30px, 3vw, 40px); border-radius: 10px; }
+    .skeleton-line.is-screen-title { width: 128px; max-width: 100%; height: 20px; border-radius: 7px; }
+    .skeleton-copy { display: grid; gap: 10px; }
+    .tag .skeleton-line { margin: 3px 0; }
+    .facts dd.skeleton-copy { gap: 7px; padding-top: 3px; }
+    .screen-body > .skeleton-screen-copy { flex: 1; }
+    .skeleton-app { display: grid; grid-template-columns: 22% minmax(0, 1fr); width: 100%; height: 100%; background: #fcfdfb; }
+    .skeleton-app-rail { display: grid; align-content: start; gap: 16px; padding: 24px 12px; border-right: 1px solid var(--border-soft); }
+    .skeleton-app-main { display: grid; min-width: 0; align-content: start; gap: 16px; padding: 24px; }
+    .skeleton-app-main > .skeleton-line:first-child { height: 16px; border-radius: 7px; }
+    .skeleton-block { height: 76px; border-radius: 14px; background: #edf1eb; }
+    .skeleton-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .skeleton-tiles .skeleton-block { height: 68px; }
+    .skeleton-mobile { display: grid; align-content: start; gap: 10px; height: 100%; padding: 32px 12px 16px; background: #fcfdfb; }
+    .skeleton-mobile .skeleton-line { height: 5px; border-radius: 3px; }
+    .skeleton-mobile > .skeleton-line:first-child { height: 9px; }
+    .skeleton-mobile .skeleton-block { height: 62px; border-radius: 9px; }
+    .skeleton-mobile .skeleton-tiles { gap: 6px; }
+    .skeleton-mobile .skeleton-tiles .skeleton-block { height: 46px; border-radius: 7px; }
     @media (max-width: 1180px) { .board-layout { grid-template-columns: 1fr; } .facts-panel { position: static; } .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; } }
     @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .surface { padding: 26px; border-radius: 26px; } .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .preview { height: 360px; } }
     @media (max-width: 520px) { .shell { padding: 14px 12px 24px; } .surface { padding: 22px 18px; border-radius: 24px; } .topbar { gap: 10px; } .back { padding: 0 6px; } .hero { display: block; margin-bottom: 26px; } .count { margin-top: 16px; } .preview, .screen:only-child .preview { height: 280px; } .screen-body { padding: 16px; } .facts { grid-template-columns: 1fr; } .facts-panel { padding: 18px; } }
@@ -108,22 +136,61 @@
       'use strict';
       const data = JSON.parse(document.getElementById('design-data').textContent);
       const design = data.design;
-      document.title = `${design.id} ${design.title} · Lottery Ticket Design`;
-      document.getElementById('project-name').textContent = data.projectTitle;
+      const skeletonDemo = data.skeletonDemo === true;
+      function element(tag, className = '') {
+        const node = document.createElement(tag); node.className = className; return node;
+      }
+      function skeletonLine(variant = '') {
+        const line = element('span', `skeleton-line${variant ? ` ${variant}` : ''}`);
+        line.setAttribute('aria-hidden', 'true'); return line;
+      }
+      function skeletonPreview(mobile) {
+        const shell = element('div', mobile ? 'skeleton-mobile' : 'skeleton-app');
+        shell.setAttribute('aria-hidden', 'true');
+        let main = shell;
+        if (!mobile) {
+          const rail = element('div', 'skeleton-app-rail');
+          rail.append(skeletonLine('is-medium'), skeletonLine('is-long'), skeletonLine(), skeletonLine('is-medium'));
+          main = element('div', 'skeleton-app-main'); shell.append(rail, main);
+        }
+        const tiles = element('div', 'skeleton-tiles');
+        tiles.append(element('div', 'skeleton-block'), element('div', 'skeleton-block'));
+        main.append(skeletonLine('is-medium'), skeletonLine('is-long'), element('div', 'skeleton-block'), tiles, skeletonLine(), skeletonLine('is-medium'));
+        return shell;
+      }
+      document.title = skeletonDemo ? `${design.id} · 设计画板 · Lottery Ticket Design` : `${design.id} ${design.title} · Lottery Ticket Design`;
       document.getElementById('design-id').textContent = design.id;
-      document.getElementById('design-direction').textContent = design.direction;
-      document.getElementById('design-title').textContent = design.title;
-      document.getElementById('design-summary').textContent = design.summary;
-      document.getElementById('screen-count').textContent = `${design.screens.length} 个界面`;
+      const projectName = document.getElementById('project-name');
+      const direction = document.getElementById('design-direction');
+      const designTitle = document.getElementById('design-title');
+      const designSummary = document.getElementById('design-summary');
+      const screenCount = document.getElementById('screen-count');
+      if (skeletonDemo) {
+        projectName.append(skeletonLine('is-project')); projectName.setAttribute('aria-label', '项目名称待生成');
+        direction.append(skeletonLine('is-label')); direction.setAttribute('aria-label', '设计方向待生成');
+        designTitle.append(skeletonLine('is-title')); designTitle.setAttribute('aria-label', '设计名称待生成');
+        designSummary.classList.add('skeleton-copy');
+        designSummary.append(skeletonLine('is-long'), skeletonLine('is-medium')); designSummary.setAttribute('aria-label', '设计说明待生成');
+        screenCount.append(skeletonLine('is-count')); screenCount.setAttribute('aria-label', `${design.screens.length} 个界面`);
+      } else {
+        projectName.textContent = data.projectTitle;
+        direction.textContent = design.direction;
+        designTitle.textContent = design.title;
+        designSummary.textContent = design.summary;
+        screenCount.textContent = `${design.screens.length} 个界面`;
+      }
       const facts = document.getElementById('design-facts');
       for (const [key, label] of [
         ['layout', '布局'], ['style', '风格'], ['palette', '色彩搭配'],
         ['elements', '元素'], ['motion', '动效'], ['typography', '字体'], ['interaction', '交互']
       ]) {
-        if (!design[key]) continue;
+        if (!skeletonDemo && !design[key]) continue;
         const row = document.createElement('div');
         const term = document.createElement('dt'); term.textContent = label;
-        const value = document.createElement('dd'); value.textContent = design[key];
+        const value = document.createElement('dd');
+        if (skeletonDemo) {
+          value.className = 'skeleton-copy'; value.append(skeletonLine('is-long'), skeletonLine('is-medium')); value.setAttribute('aria-label', '内容待生成');
+        } else value.textContent = design[key];
         row.append(term, value); facts.append(row);
       }
       const grid = document.getElementById('screen-grid');
@@ -142,7 +209,9 @@
           preview.append(chrome);
           content = document.createElement('div'); content.className = 'web-canvas'; preview.append(content);
         }
-        if (screen.preview) {
+        if (skeletonDemo) {
+          content.append(skeletonPreview(mobile));
+        } else if (screen.preview) {
           const img = document.createElement('img'); img.src = screen.preview; img.alt = `${screen.title} 界面预览`; img.loading = 'lazy'; content.append(img);
         } else {
           const frame = document.createElement('iframe'); frame.src = screen.file; frame.title = `${screen.title} 缩略预览`; frame.loading = 'lazy'; frame.tabIndex = -1; content.append(frame);
@@ -157,17 +226,23 @@
         }
         const body = document.createElement('div'); body.className = 'screen-body';
         const copy = document.createElement('div');
-        const number = document.createElement('div'); number.className = 'screen-id'; number.textContent = `${String(index + 1).padStart(2, '0')} / ${screen.id}`;
-        const title = document.createElement('h3'); title.textContent = screen.title;
+        const number = document.createElement('div'); number.className = 'screen-id'; number.textContent = skeletonDemo ? String(index + 1).padStart(2, '0') : `${String(index + 1).padStart(2, '0')} / ${screen.id}`;
+        const title = document.createElement('h3');
+        if (skeletonDemo) {
+          copy.className = 'skeleton-screen-copy';
+          title.append(skeletonLine('is-screen-title')); title.setAttribute('aria-label', `界面 ${index + 1}`);
+        } else title.textContent = screen.title;
         copy.append(number, title);
-        if (screen.summary) { const summary = document.createElement('p'); summary.className = 'screen-summary'; summary.textContent = screen.summary; copy.append(summary); }
+        if (skeletonDemo) {
+          const summary = element('p', 'screen-summary skeleton-copy'); summary.append(skeletonLine('is-long'), skeletonLine('is-medium')); summary.setAttribute('aria-label', '界面说明待生成'); copy.append(summary);
+        } else if (screen.summary) { const summary = document.createElement('p'); summary.className = 'screen-summary'; summary.textContent = screen.summary; copy.append(summary); }
         const openLabel = document.createElement('span'); openLabel.className = 'open-label'; openLabel.textContent = mobile ? 'iPhone 18 Pro' : 'Web';
         const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         for (const [key, value] of Object.entries({ class: 'icon', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) arrow.setAttribute(key, value);
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M7 17 17 7M7 7h10v10');
         arrow.append(path); openLabel.append(arrow);
         body.append(copy, openLabel);
-        const link = document.createElement('a'); link.className = 'screen-link'; link.href = screen.viewerFile || screen.file; link.textContent = `体验 ${screen.title}`;
+        const link = document.createElement('a'); link.className = 'screen-link'; link.href = screen.viewerFile || screen.file; link.textContent = skeletonDemo ? `预览界面 ${index + 1}` : `体验 ${screen.title}`;
         card.append(preview, body, link); grid.append(card);
       });
     })();
