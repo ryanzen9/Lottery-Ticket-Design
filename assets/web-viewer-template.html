@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web 预览 · Lottery Ticket Design</title>
+  <style>
+    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; height: 100dvh; display: flex; flex-direction: column; background: #101112; color: #f4f1e9; }
+    a { color: inherit; text-decoration: none; }
+    button, select { font: inherit; }
+    :focus-visible { outline: 2px solid #a88aff; outline-offset: 3px; }
+    .toolbar { min-height: 64px; padding: 11px clamp(14px, 2.5vw, 32px); display: flex; align-items: center; gap: 18px; border-bottom: 1px solid #303238; }
+    .back { white-space: nowrap; color: #cbc7bd; font-size: 12px; }
+    .back:hover, .raw:hover { color: white; }
+    .title { min-width: 0; flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .title strong { font-weight: 600; }
+    .controls { display: flex; align-items: center; gap: 8px; }
+    .controls select, .controls button { min-height: 34px; padding: 6px 10px; border: 1px solid #3c3f44; border-radius: 6px; background: #1c1e21; color: #f4f1e9; font-size: 12px; }
+    .controls button { cursor: pointer; }
+    .raw { white-space: nowrap; color: #cbc7bd; font-size: 12px; }
+    .stage { flex: 1; min-height: 0; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 20px; background: #191b1e; }
+    .sizer { flex: none; position: relative; }
+    .browser { transform-origin: top left; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #54565a; border-radius: 10px; background: #fff; box-shadow: 0 18px 55px #0008; }
+    .chrome { flex: none; height: 40px; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: #eeeff1; color: #5d626a; }
+    .dots { display: flex; gap: 6px; }
+    .dots i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #a9adb3; }
+    .address { flex: 1; max-width: 760px; height: 23px; margin: 0 auto; padding: 3px 12px; overflow: hidden; border: 1px solid #d8dce0; border-radius: 5px; background: #fff; color: #61666e; font-size: 11px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+    iframe { display: block; flex: none; border: 0; background: #fff; }
+    @media (max-width: 700px) { .toolbar { flex-wrap: wrap; gap: 8px 14px; } .title { order: -1; flex-basis: 100%; } .stage { padding: 10px; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <a class="back" href="../index.html">← 设计画板</a>
+    <div class="title"><strong id="screen-title"></strong> <span id="design-id"></span></div>
+    <div class="controls">
+      <label for="viewport" style="font-size:12px;color:#cbc7bd">视口</label>
+      <select id="viewport" aria-label="桌面视口">
+        <option value="1440x900">1440 × 900</option>
+        <option value="1920x1080">1920 × 1080</option>
+        <option value="1366x768">1366 × 768</option>
+        <option value="1280x800">1280 × 800</option>
+      </select>
+      <button id="fit" type="button" aria-pressed="true">适应窗口</button>
+    </div>
+    <a class="raw" id="raw" href="#">原始 HTML ↗</a>
+  </header>
+  <main class="stage" id="stage" aria-label="桌面网页预览">
+    <div class="sizer" id="sizer">
+      <div class="browser" id="browser">
+        <div class="chrome" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span><span class="address" id="address"></span></div>
+        <iframe id="page" title="可交互网页原型"></iframe>
+      </div>
+    </div>
+  </main>
+  <script type="application/json" id="viewer-data">__VIEWER_DATA_JSON__</script>
+  <script>
+    (() => {
+      'use strict';
+      const data = JSON.parse(document.getElementById('viewer-data').textContent);
+      const stage = document.getElementById('stage');
+      const sizer = document.getElementById('sizer');
+      const browser = document.getElementById('browser');
+      const page = document.getElementById('page');
+      const picker = document.getElementById('viewport');
+      const fit = document.getElementById('fit');
+      let fitWindow = true;
+      document.title = `${data.screenTitle} · Web 预览`;
+      document.getElementById('screen-title').textContent = data.screenTitle;
+      document.getElementById('design-id').textContent = `· ${data.designId}`;
+      document.getElementById('address').textContent = `${data.designId} / ${data.screenTitle}`;
+      document.getElementById('raw').href = data.screenFile;
+      page.src = data.screenFile;
+      function layout() {
+        const [width, height] = picker.value.split('x').map(Number);
+        const outerWidth = width + 2;
+        const outerHeight = height + 42;
+        const scale = fitWindow ? Math.min(1, (stage.clientWidth - 40) / outerWidth, (stage.clientHeight - 40) / outerHeight) : 1;
+        browser.style.width = `${outerWidth}px`;
+        browser.style.height = `${outerHeight}px`;
+        browser.style.transform = `scale(${Math.max(scale, .05)})`;
+        page.style.width = `${width}px`;
+        page.style.height = `${height}px`;
+        sizer.style.width = `${outerWidth * Math.max(scale, .05)}px`;
+        sizer.style.height = `${outerHeight * Math.max(scale, .05)}px`;
+        stage.style.alignItems = fitWindow ? 'center' : 'flex-start';
+        stage.style.justifyContent = fitWindow ? 'center' : 'flex-start';
+      }
+      picker.addEventListener('change', layout);
+      fit.addEventListener('click', () => { fitWindow = !fitWindow; fit.textContent = fitWindow ? '适应窗口' : '100%'; fit.setAttribute('aria-pressed', String(fitWindow)); layout(); });
+      new ResizeObserver(layout).observe(stage);
+      layout();
+    })();
+  </script>
+</body>
+</html>

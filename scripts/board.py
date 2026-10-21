@@ -14,12 +14,16 @@ from urllib.parse import urlparse
 SKILL_DIR = Path(__file__).resolve().parents[1]
 TEMPLATE = SKILL_DIR / "assets" / "dashboard-template.html"
 DESIGN_TEMPLATE = SKILL_DIR / "assets" / "design-board-template.html"
+WEB_VIEWER_TEMPLATE = SKILL_DIR / "assets" / "web-viewer-template.html"
+IPHONE_VIEWER_TEMPLATE = SKILL_DIR / "assets" / "iphone-18-pro-viewer-template.html"
 ID_PATTERN = re.compile(r"P-\d{3,}$")
 SCREEN_ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]*$")
+VIEWER_TYPES = ("web", "iphone-18-pro")
 REQUIRED_TEXT = (
     "title", "direction", "summary", "layout", "palette",
     "interaction", "responsive", "rationale", "file",
 )
+KEY_DESIGN_FIELDS = ("layout", "style", "palette", "elements", "motion", "typography", "interaction")
 
 
 def fail(message: str) -> None:
@@ -118,13 +122,17 @@ def validate(project_dir: Path, data: dict) -> None:
             fail(f"prototype {proto_id} has wrong batch")
         if not all(isinstance(item.get(key), str) and item[key].strip() for key in REQUIRED_TEXT):
             fail(f"prototype {proto_id} has missing design metadata")
+        if data["schemaVersion"] == 2 and not all(
+            isinstance(item.get(key), str) and item[key].strip() for key in KEY_DESIGN_FIELDS
+        ):
+            fail(f"prototype {proto_id} requires layout, style, palette, elements, motion, typography and interaction")
         if design_brief is not None and not all(
             isinstance(item.get(key), str) and item[key].strip() for key in ("style", "motion")
         ):
             fail(f"prototype {proto_id} requires style and motion")
         if not isinstance(item.get("tags"), list) or any(not isinstance(tag, str) for tag in item["tags"]):
             fail(f"prototype {proto_id} requires string tags")
-        for field in ("style", "motion"):
+        for field in ("style", "elements", "motion", "typography"):
             if field in item and (not isinstance(item[field], str) or not item[field].strip()):
                 fail(f"prototype {proto_id} has invalid {field}")
         inspirations = item.get("inspirations")
@@ -178,6 +186,10 @@ def validate(project_dir: Path, data: dict) -> None:
             if not SCREEN_ID_PATTERN.fullmatch(screen_id) or screen_id in screen_ids:
                 fail(f"prototype {proto_id} has invalid or duplicate screen id: {screen_id}")
             screen_ids.add(screen_id)
+            if screen.get("viewer", "web") not in VIEWER_TYPES:
+                fail(f"prototype {proto_id} screen {screen_id} requires viewer: web or iphone-18-pro")
+            if "statusBar" in screen and screen["statusBar"] not in ("light", "dark"):
+                fail(f"prototype {proto_id} screen {screen_id} has invalid statusBar")
             if not within(screen["file"], folder / "screens") or screen["file"] in seen_files:
                 fail(f"prototype {proto_id} screen must have a unique file inside its screens folder")
             seen_files.add(screen["file"])
@@ -216,20 +228,43 @@ def render(project_dir: Path) -> None:
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     validate(project_dir, data)
     design_template = DESIGN_TEMPLATE.read_text(encoding="utf-8")
+    viewer_templates = {
+        "web": WEB_VIEWER_TEMPLATE.read_text(encoding="utf-8"),
+        "iphone-18-pro": IPHONE_VIEWER_TEMPLATE.read_text(encoding="utf-8"),
+    }
     for item in data["prototypes"]:
         if "screens" not in item:
             continue
         folder = Path(item["file"]).parent
+        viewer_dir = project_dir / folder / "viewers"
+        viewer_dir.mkdir(exist_ok=True)
         screens = []
         for screen in item["screens"]:
             local_screen = dict(screen)
             local_screen["file"] = Path(screen["file"]).relative_to(folder).as_posix()
+            viewer_type = screen.get("viewer", "web")
+            viewer_relative = Path("viewers") / f"{screen['id']}.html"
+            viewer_project_path = (folder / viewer_relative).as_posix()
+            safe_generated_file(project_dir, viewer_project_path, ".html")
+            viewer_payload = {
+                "designId": item["id"],
+                "designTitle": item["title"],
+                "screenTitle": screen["title"],
+                "screenFile": "../" + local_screen["file"],
+                "statusBar": screen.get("statusBar", "dark"),
+            }
+            (project_dir / viewer_project_path).write_text(
+                embed(viewer_templates[viewer_type], "__VIEWER_DATA_JSON__", viewer_payload), encoding="utf-8"
+            )
+            local_screen["viewer"] = viewer_type
+            local_screen["viewerFile"] = viewer_relative.as_posix()
             if screen.get("preview"):
                 local_screen["preview"] = Path(screen["preview"]).relative_to(folder).as_posix()
             screens.append(local_screen)
         payload = {"projectTitle": data["project"]["title"], "design": {
             "id": item["id"], "title": item["title"], "direction": item["direction"],
-            "summary": item["summary"], "style": item.get("style", ""), "screens": screens,
+            "summary": item["summary"], "screens": screens,
+            **{key: item.get(key, "") for key in KEY_DESIGN_FIELDS},
         }}
         (project_dir / item["file"]).write_text(
             embed(design_template, "__DESIGN_DATA_JSON__", payload), encoding="utf-8"

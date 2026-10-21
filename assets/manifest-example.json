@@ -7,8 +7,8 @@
       "goal": "让设计团队快速比较并筛选原型方向",
       "audience": "产品设计师和参与评审的产品经理",
       "coreTasks": "查看、比较、选择原型并继续下一轮迭代",
-      "platform": "桌面浏览器，兼顾窄屏",
-      "stylePreferences": "仪表盘极简深色；每份原型可探索不同视觉语言",
+      "platform": "桌面浏览器与 iPhone 18 Pro 移动应用预览",
+      "stylePreferences": "仪表盘为浅灰底板与悬浮白色面板；每份原型可探索不同视觉语言",
       "interactionPreferences": "明确的选择与复制反馈，适度动效",
       "mustHave": "预览、编号、设计元数据、批量勾选",
       "constraints": "可离线打开的静态 HTML",
@@ -40,8 +40,8 @@
       "summary": "把六份方案当成作品陈列，先用整体视觉筛选方向。",
       "layout": "不等宽策展网格，首稿占两行",
       "palette": "暖灰纸面＋深墨文字",
-      "interaction": "卡片进入详情、按方向筛选",
-      "responsive": "桌面三列，手机两列",
+      "interaction": "浏览策展墙、进入方案详情；移动端可保留方向并切换底部导航状态",
+      "responsive": "桌面三列；手机两列，另有移动应用界面",
       "rationale": "适合设计初期快速建立整体偏好",
       "tags": [
         "策展",
@@ -50,7 +50,7 @@
       "parentIds": [],
       "file": "prototypes/P-001/index.html",
       "style": "策展式极简",
-      "motion": "轻微渐显，减少注意力转移",
+      "motion": "无主动动效，画面保持稳定",
       "inspirations": [
         {
           "name": "Apple Human Interface Guidelines",
@@ -64,15 +64,27 @@
           "id": "main",
           "title": "主界面",
           "summary": "该设计方向的主要使用界面",
-          "file": "prototypes/P-001/screens/main.html"
+          "file": "prototypes/P-001/screens/main.html",
+          "viewer": "web"
         },
         {
           "id": "detail",
           "title": "方案详情",
           "summary": "查看方案细节与设计依据",
-          "file": "prototypes/P-001/screens/detail.html"
+          "file": "prototypes/P-001/screens/detail.html",
+          "viewer": "web"
+        },
+        {
+          "id": "mobile",
+          "title": "移动端策展",
+          "summary": "在 iPhone 18 Pro 中浏览方向并保留偏好",
+          "file": "prototypes/P-001/screens/mobile.html",
+          "viewer": "iphone-18-pro",
+          "statusBar": "dark"
         }
-      ]
+      ],
+      "elements": "大幅预览、细边卡片、编号角标；移动端含底部导航与保留按钮",
+      "typography": "Georgia / 宋体标题＋系统无衬线正文"
     },
     {
       "id": "P-002",
@@ -82,7 +94,7 @@
       "summary": "让两份原型在相同视口下并排，用一致指标讨论差异。",
       "layout": "双栏预览＋四项指标",
       "palette": "深海蓝＋荧黄强调",
-      "interaction": "切换比较对象、选为偏好",
+      "interaction": "并排比较、切换偏好按钮状态",
       "responsive": "窄屏改为上下比较",
       "rationale": "适合需要对照功能和布局取舍的评审",
       "tags": [
@@ -92,7 +104,7 @@
       "parentIds": [],
       "file": "prototypes/P-002/index.html",
       "style": "分析型深色",
-      "motion": "比较对象切换时保持位置连续",
+      "motion": "偏好按钮即时切换状态",
       "inspirations": [
         {
           "name": "Fluent 2 Layout",
@@ -106,9 +118,12 @@
           "id": "main",
           "title": "主界面",
           "summary": "该设计方向的主要使用界面",
-          "file": "prototypes/P-002/screens/main.html"
+          "file": "prototypes/P-002/screens/main.html",
+          "viewer": "web"
         }
-      ]
+      ],
+      "elements": "双预览面板、四项指标、偏好按钮",
+      "typography": "系统无衬线，粗体数字突出指标"
     },
     {
       "id": "P-003",
@@ -118,7 +133,7 @@
       "summary": "把原型放进探索、讨论、保留三个状态中推进决策。",
       "layout": "三列看板＋状态卡片",
       "palette": "浅砂色＋珊瑚红",
-      "interaction": "移动状态、添加反馈",
+      "interaction": "查看不同状态的原型卡",
       "responsive": "手机纵向堆叠看板",
       "rationale": "适合多人协作与阶段性收敛",
       "tags": [
@@ -128,7 +143,7 @@
       "parentIds": [],
       "file": "prototypes/P-003/index.html",
       "style": "温暖协作型",
-      "motion": "状态改变时短暂强调位置",
+      "motion": "无主动动效，状态卡保持稳定",
       "inspirations": [
         {
           "name": "Atlassian Design System",
@@ -142,9 +157,12 @@
           "id": "main",
           "title": "主界面",
           "summary": "该设计方向的主要使用界面",
-          "file": "prototypes/P-003/screens/main.html"
+          "file": "prototypes/P-003/screens/main.html",
+          "viewer": "web"
         }
-      ]
+      ],
+      "elements": "状态泳道、原型卡、添加按钮",
+      "typography": "Georgia / 宋体标题＋系统无衬线正文"
     },
     {
       "id": "P-004",
@@ -154,7 +172,7 @@
       "summary": "用坐标平面展示六个方向的视觉表达与任务密度。",
       "layout": "二维地图＋浮动节点",
       "palette": "深青绿＋浅薄荷",
-      "interaction": "筛选维度、点开节点",
+      "interaction": "查看方向分布、切换维度勾选状态",
       "responsive": "手机转为双列节点列表",
       "rationale": "适合发现已探索方向之间的空白",
       "tags": [
@@ -164,7 +182,7 @@
       "parentIds": [],
       "file": "prototypes/P-004/index.html",
       "style": "探索型数据图",
-      "motion": "节点聚焦时显示关系",
+      "motion": "无主动动效，关系图静态呈现",
       "inspirations": [
         {
           "name": "Carbon Data Visualization",
@@ -178,9 +196,12 @@
           "id": "main",
           "title": "主界面",
           "summary": "该设计方向的主要使用界面",
-          "file": "prototypes/P-004/screens/main.html"
+          "file": "prototypes/P-004/screens/main.html",
+          "viewer": "web"
         }
-      ]
+      ],
+      "elements": "坐标轴、浮动节点、维度勾选框",
+      "typography": "Georgia / 宋体标题＋等宽标签＋系统正文"
     },
     {
       "id": "P-005",
@@ -190,7 +211,7 @@
       "summary": "一次只看一份大预览，旁边记录具体判断。",
       "layout": "大画布＋评审侧栏＋底部缩略条",
       "palette": "冷白＋靛蓝",
-      "interaction": "切换原型、保留方向、记录评论",
+      "interaction": "切换缩略条状态、保留方向",
       "responsive": "窄屏预览与备注纵向排列",
       "rationale": "适合深入检查单个方案的页面细节",
       "tags": [
@@ -200,7 +221,7 @@
       "parentIds": [],
       "file": "prototypes/P-005/index.html",
       "style": "编辑式聚焦",
-      "motion": "切换稿件时保持预览框架稳定",
+      "motion": "缩略条选中状态即时变化",
       "inspirations": [
         {
           "name": "Material Design 3 Typography",
@@ -214,9 +235,12 @@
           "id": "main",
           "title": "主界面",
           "summary": "该设计方向的主要使用界面",
-          "file": "prototypes/P-005/screens/main.html"
+          "file": "prototypes/P-005/screens/main.html",
+          "viewer": "web"
         }
-      ]
+      ],
+      "elements": "大画布、评审侧栏、底部缩略条",
+      "typography": "Georgia / 宋体标题＋系统无衬线正文"
     },
     {
       "id": "P-006",
@@ -226,7 +250,7 @@
       "summary": "用相同评价标准给六个方向排序并解释保留理由。",
       "layout": "可横向滚动的评分矩阵",
       "palette": "灰绿＋森林绿",
-      "interaction": "选择候选、比较维度",
+      "interaction": "切换方案选择按钮状态",
       "responsive": "移动端保持表格横向滚动",
       "rationale": "适合团队需要透明地说明决策依据",
       "tags": [
@@ -236,7 +260,7 @@
       "parentIds": [],
       "file": "prototypes/P-006/index.html",
       "style": "理性决策型",
-      "motion": "筛选后平滑更新评价结果",
+      "motion": "无主动动效，强调稳定可读",
       "inspirations": [
         {
           "name": "Carbon Dashboards",
@@ -250,9 +274,12 @@
           "id": "main",
           "title": "主界面",
           "summary": "该设计方向的主要使用界面",
-          "file": "prototypes/P-006/screens/main.html"
+          "file": "prototypes/P-006/screens/main.html",
+          "viewer": "web"
         }
-      ]
+      ],
+      "elements": "评分矩阵、状态高亮、图例",
+      "typography": "Georgia / 宋体标题＋系统无衬线数据标签"
     }
   ]
 }
