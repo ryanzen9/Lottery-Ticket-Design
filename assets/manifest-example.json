@@ -13,7 +13,9 @@
       "mustHave": "预览、编号、设计元数据、批量勾选",
       "constraints": "本地静态 HTML；Tailwind CSS v4 CDN，首次加载需要联网",
       "prototypeCount": 6
-    }
+    },
+    "activeStageId": null,
+    "stageSelectionRevision": 0
   },
   "batches": [
     {
@@ -293,5 +295,6 @@
       "designSystem": "prototypes/P-006/design.css",
       "styleHistory": "prototypes/P-006/style-history.json"
     }
-  ]
+  ],
+  "stages": []
 }

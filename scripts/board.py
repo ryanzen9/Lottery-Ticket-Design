@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 import design_system as ds
+import export_design
 
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
@@ -97,8 +98,14 @@ def validate(project_dir: Path, data: dict) -> None:
             fail(f"batch {number} requires title and brief")
         ids = batch.get("ids")
         parents = batch.get("parentIds", [])
-        if not isinstance(ids, list) or not 6 <= len(ids) <= 10 or len(set(ids)) != len(ids):
-            fail(f"batch {number} must list 6–10 unique ids")
+        mode = batch.get("mode", "explore")
+        if mode not in ("explore", "refine"):
+            fail(f"batch {number} mode must be explore or refine")
+        valid_count = isinstance(ids, list) and (len(ids) == 1 if mode == "refine" else 6 <= len(ids) <= 10)
+        if not valid_count or len(set(ids)) != len(ids):
+            fail(f"batch {number} requires {'1 unique id for refinement' if mode == 'refine' else '6–10 unique ids'}")
+        if mode == "refine" and not batch.get("stageId"):
+            fail(f"refinement batch {number} requires stageId")
         if not isinstance(parents, list) or any(parent not in known_ids for parent in parents):
             fail(f"batch {number} has unknown or future parentIds")
         for proto_id in ids:
@@ -220,6 +227,55 @@ def validate(project_dir: Path, data: dict) -> None:
     ordered_ids = [proto_id for batch in batches for proto_id in batch["ids"]]
     if [item["id"] for item in prototypes] != ordered_ids:
         fail("prototypes must follow batch and card order")
+    validate_stages(data, id_to_batch)
+
+
+def validate_stages(data: dict, id_to_batch: dict) -> None:
+    stages = data.get("stages", [])
+    if not isinstance(stages, list):
+        fail("stages must be an array")
+    lookup = {}
+    for stage in stages:
+        if not isinstance(stage, dict) or not isinstance(stage.get("id"), str) or not re.fullmatch(r"S-\d{3,}", stage["id"]) or stage["id"] in lookup:
+            fail("stage ids must be unique S-NNN values")
+        if not isinstance(stage.get("title"), str) or not stage["title"].strip():
+            fail(f"stage {stage['id']} requires title")
+        if any(not isinstance(stage.get(key), str) or stage[key] not in id_to_batch for key in ("baseId", "currentId", "acceptedId")):
+            fail(f"stage {stage['id']} references an unknown prototype")
+        if stage.get("status") not in ("ready", "refining") or type(stage.get("revision")) is not int or stage["revision"] < 1:
+            fail(f"stage {stage['id']} requires ready/refining status and a positive revision")
+        if stage["status"] == "ready" and stage["currentId"] != stage["acceptedId"]:
+            fail(f"ready stage {stage['id']} must point to its accepted draft")
+        if stage["status"] == "refining" and stage["currentId"] == stage["acceptedId"]:
+            fail(f"refining stage {stage['id']} requires a new draft awaiting acceptance")
+        lookup[stage["id"]] = stage
+    active = data["project"].get("activeStageId")
+    if active is not None and (not isinstance(active, str) or active not in lookup):
+        fail("project.activeStageId must reference a known stage")
+    selection_revision = data["project"].get("stageSelectionRevision", 0)
+    if type(selection_revision) is not int or selection_revision < 0:
+        fail("project.stageSelectionRevision must be a nonnegative integer")
+    for batch in data["batches"]:
+        stage_id = batch.get("stageId")
+        if not stage_id:
+            if batch.get("stageBaseId"):
+                fail(f"batch {batch['number']} stageBaseId requires stageId")
+            continue
+        if not isinstance(stage_id, str) or stage_id not in lookup:
+            fail(f"batch {batch['number']} references an unknown stage")
+        base = batch.get("stageBaseId")
+        if not isinstance(base, str) or base not in id_to_batch or id_to_batch[base] >= batch["number"] or base not in batch.get("parentIds", []):
+            fail(f"batch {batch['number']} requires an earlier stageBaseId in parentIds")
+        members = {lookup[stage_id]["baseId"]} | {proto_id for entry in data["batches"] if entry.get("stageId") == stage_id and entry.get("mode") == "refine" and entry["number"] < batch["number"] for proto_id in entry["ids"]}
+        if base not in members:
+            fail(f"batch {batch['number']} stageBaseId must belong to its stage")
+        for item in data["prototypes"]:
+            if item["batch"] == batch["number"] and base not in item["parentIds"]:
+                fail(f"prototype {item['id']} must inherit its stage baseline")
+    for stage in stages:
+        members = {stage["baseId"]} | {proto_id for batch in data["batches"] if batch.get("stageId") == stage["id"] and batch.get("mode") == "refine" for proto_id in batch["ids"]}
+        if stage["currentId"] not in members or stage["acceptedId"] not in members:
+            fail(f"stage {stage['id']} current/accepted draft must belong to that stage")
 
 
 def embed(template: str, marker: str, data: dict) -> str:
@@ -288,6 +344,8 @@ def render(project_dir: Path) -> None:
                    "skeletonDemo": data["project"].get("dashboardSkeleton") is True, "design": {
             "id": item["id"], "title": item["title"], "direction": item["direction"],
             "summary": item["summary"], "screens": screens,
+            "exportFile": f"../../exports/{item['id']}.zip",
+            "stageAction": f"../../index.html?stage={item['id']}#stages",
             **system_files,
             **{key: item.get(key, "") for key in KEY_DESIGN_FIELDS},
         }}
@@ -295,8 +353,15 @@ def render(project_dir: Path) -> None:
         board_source = embed(design_template, "__DESIGN_DATA_JSON__", payload)
         board_path.write_text(ds.inject(board_source, shell_css, board_path), encoding="utf-8")
     template = TEMPLATE.read_text(encoding="utf-8")
+    handoff_script = (SKILL_DIR / "assets/iteration-handoff.js").read_text(encoding="utf-8")
+    if "</script" in handoff_script.lower():
+        fail("iteration-handoff.js may not contain a closing script tag")
+    template = template.replace("/* __ITERATION_HANDOFF_JS__ */", handoff_script, 1)
+    dashboard_data = {**data, "prototypes": [{**item, "exportFile": f"exports/{item['id']}.zip"} for item in data["prototypes"]]}
     dashboard_path = project_dir / "index.html"
-    dashboard_path.write_text(ds.inject(embed(template, "__BOARD_DATA_JSON__", data), shell_css, dashboard_path), encoding="utf-8")
+    dashboard_path.write_text(ds.inject(embed(template, "__BOARD_DATA_JSON__", dashboard_data), shell_css, dashboard_path), encoding="utf-8")
+    for item in data["prototypes"]:
+        export_design.build(project_dir, data, item)
     count = sum("screens" in item for item in data["prototypes"])
     print(f"Rendered {project_dir / 'index.html'} ({len(data['batches'])} batches, {len(data['prototypes'])} designs, {count} design boards)")
 

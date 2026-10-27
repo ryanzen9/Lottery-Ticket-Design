@@ -111,6 +111,37 @@ class DesignSystemWorkflowTests(unittest.TestCase):
         self.assertIn(ds.CDN, (self.project / "index.html").read_text())
         self.assertFalse((self.project / "prototypes/P-001/style-history.json").exists())
 
+    def test_stage_refinement_supports_one_immutable_new_draft(self):
+        for item in self.data["prototypes"]:
+            self.prepare(item); ds.anchor(self.project, item["id"]); self.write_screens(item)
+        data = json.loads((self.project / "manifest.json").read_text())
+        parent = data["prototypes"][0]
+        child = copy.deepcopy(parent)
+        child.update(id="P-007", batch=2, parentIds=["P-001"], file="prototypes/P-007/index.html")
+        child["screens"] = [{**screen, "file": screen["file"].replace("P-001", "P-007")} for screen in child["screens"]]
+        child.pop("designSystem", None); child.pop("styleHistory", None)
+        data["prototypes"].append(child)
+        data["batches"].append({"number": 2, "title": "单稿优化", "brief": "调整阶段稿细节", "mode": "refine", "stageId": "S-001", "stageBaseId": "P-001", "parentIds": ["P-001"], "ids": ["P-007"]})
+        data["stages"] = [{"id": "S-001", "title": "阶段 1", "baseId": "P-001", "currentId": "P-007", "acceptedId": "P-001", "status": "refining", "revision": 2}]
+        data["project"]["activeStageId"] = "S-001"
+        ds.dump(self.project / "manifest.json", data)
+        original = (self.project / parent["designSystem"]).read_bytes()
+        ds.prepare(self.project, "P-007", "Refine stage details", "P-001"); ds.anchor(self.project, "P-007"); self.write_screens(child)
+        board.render(self.project)
+        self.assertEqual((self.project / parent["designSystem"]).read_bytes(), original)
+        self.assertTrue((self.project / "exports/P-007.zip").is_file())
+        saved = json.loads((self.project / "manifest.json").read_text())
+        self.assertEqual(saved["stages"][0]["acceptedId"], "P-001")
+        invalid = copy.deepcopy(saved); invalid["batches"][-1]["mode"] = "explore"
+        with self.assertRaisesRegex(ValueError, "6–10"):
+            board.validate(self.project, invalid)
+        invalid = copy.deepcopy(saved); invalid["batches"][-1]["stageId"] = "S-999"
+        with self.assertRaisesRegex(ValueError, "unknown stage"):
+            board.validate(self.project, invalid)
+        invalid = copy.deepcopy(saved); invalid["batches"][-1]["parentIds"] = []
+        with self.assertRaisesRegex(ValueError, "stageBaseId"):
+            board.validate(self.project, invalid)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,8 @@
     <nav class="topbar" aria-label="画板导航">
       <a class="back" href="../../index.html#prototype-grid"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>原型总览</a>
       <span class="project-name" id="project-name"></span>
+      <a class="export-design stage-action" id="set-stage" href="#" hidden>设为阶段</a>
+      <a class="export-design" id="export-design" href="#" download hidden><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4"/></svg>导出原型</a>
     </nav>
     <div class="surface">
       <header class="hero">
@@ -95,6 +97,10 @@
       'use strict';
       const data = JSON.parse(document.getElementById('design-data').textContent);
       const design = data.design;
+      const stageAction = document.getElementById('set-stage');
+      if (design.stageAction) { stageAction.href = design.stageAction; stageAction.hidden = false; }
+      const exportLink = document.getElementById('export-design');
+      if (design.exportFile) { exportLink.hidden = false; exportLink.href = design.exportFile; exportLink.download = `${design.id}.zip`; }
       const skeletonDemo = data.skeletonDemo === true;
       function element(tag, className = '') {
         const node = document.createElement(tag); node.className = className; return node;

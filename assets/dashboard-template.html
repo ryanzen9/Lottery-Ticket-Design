@@ -14,16 +14,29 @@
     <nav aria-label="页面导航">
       <a class="nav-link" href="#workspace" aria-current="location"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 10 8.5-7 8.5 7v10a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/></svg><span class="nav-text">首页</span></a>
       <a class="nav-link" href="#prototype-grid"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg><span class="nav-text">原型</span></a>
+      <a class="nav-link" href="#stages"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4m0 0c4-4 10 4 14 0v10c-4 4-10-4-14 0"/></svg><span class="nav-text">阶段</span></a>
       <a class="nav-link" href="#selection-tools"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7.5 12 3 3 6-6"/></svg><span class="nav-text">选择</span></a>
     </nav>
   </aside>
 
   <main class="main" id="workspace">
     <div class="content">
+      <p class="sr-only" id="stage-notice" role="status" aria-live="polite"></p>
       <section class="handoff" id="handoff" aria-labelledby="handoff-title" hidden>
-        <div><h2 id="handoff-title">继续迭代</h2><p>勾选后自动复制编号。</p></div>
-        <div class="handoff-field"><label for="handoff-text">给 agent 的指令</label><textarea id="handoff-text" readonly aria-describedby="copy-feedback"></textarea><div class="handoff-actions"><button class="button" id="copy-prompt-button" type="button">复制完整指令</button><button class="button" id="select-text-button" type="button" hidden>选中文字</button></div><p class="feedback" id="copy-feedback" role="status" aria-live="polite"></p></div>
+        <div><h2 id="handoff-title">继续迭代</h2><p id="handoff-hint">逐份备注与整体要求将合并为一份命令。</p><div class="selected-references" id="selected-references" aria-label="已选方案与备注状态"></div></div>
+        <div class="handoff-field">
+          <label for="general-notes">整体调整要求 <span>可选</span></label>
+          <textarea id="general-notes" rows="3" placeholder="希望如何组合这些方案？下一轮还需要调整什么？"></textarea>
+          <div class="handoff-actions"><button class="button primary" id="copy-prompt-button" type="button">复制迭代命令</button><button class="button" id="select-text-button" type="button" hidden>选中文字</button></div>
+          <details class="command-preview" id="command-preview"><summary>查看完整命令</summary><label class="sr-only" for="handoff-text">给 agent 的完整迭代命令</label><textarea id="handoff-text" readonly aria-describedby="copy-feedback"></textarea></details>
+          <p class="feedback" id="copy-feedback" role="status" aria-live="polite"></p>
+        </div>
       </section>
+      <section class="stage-context" id="stage-context" aria-labelledby="stage-context-title" hidden>
+        <div class="stage-context-copy"><span class="stage-caption">当前阶段</span><h2 id="stage-context-title"></h2><a id="stage-current-link" href="#">查看阶段稿</a><span class="stage-status" id="stage-status"></span></div>
+        <div class="stage-context-actions"><label class="sr-only" for="iteration-mode">阶段迭代模式</label><select id="iteration-mode"><option value="explore">继续探索 · 6–10 稿</option><option value="refine">单独优化 · 1 稿</option></select><button class="button primary" id="accept-stage" type="button" hidden>确认阶段稿，继续探索</button><a href="#stages" class="stage-library-link">全部阶段</a></div>
+      </section>
+      <div id="history-view">
       <header class="hero">
         <div class="eyebrow" id="hero-eyebrow">PROTOTYPES</div>
         <h1 id="project-title">原型总览</h1>
@@ -34,28 +47,45 @@
         <strong class="toolbar-title" id="timeline-title">设计时间线</strong>
         <a class="toolbar-count" id="selection-count">已选 0 份</a>
         <button class="button" id="clear-button" type="button">清空选择</button>
-        <button class="button primary" id="copy-button" type="button">复制编号</button>
+        <button class="button" id="copy-button" type="button">复制编号</button>
+        <button class="button primary" id="toolbar-copy-prompt" type="button">复制迭代命令</button>
       </div>
       <div class="timeline" id="prototype-grid" aria-label="原型时间线"></div>
       <p class="empty" id="empty" hidden>还没有原型。</p>
-
+      </div>
+      <section id="stages" hidden aria-labelledby="stages-title">
+        <header class="stage-library-header"><h1 id="stages-title">阶段稿</h1><a class="button stage-history-link" href="#prototype-grid">返回时间线</a></header>
+        <div class="stage-grid" id="stage-grid"></div><p class="empty" id="stages-empty" hidden>尚未设置阶段稿。在时间线上选择一份方案，点击“设为阶段”。</p>
+      </section>
     </div>
   </main>
 
   <script type="application/json" id="prototype-data">__BOARD_DATA_JSON__</script>
+  <script>/* __ITERATION_HANDOFF_JS__ */</script>
   <script>
     (() => {
       'use strict';
       const data = JSON.parse(document.getElementById('prototype-data').textContent);
-      const selected = new Set();
+      const projectURL = new URL('.', window.location.href);
+      const draftKey = `lottery-ticket-design:iteration:v1:${projectURL.href}`;
+      let savedDraft;
+      try { savedDraft = JSON.parse(localStorage.getItem(draftKey)); } catch (_) { /* Local storage is optional. */ }
+      const draft = LotteryTicketHandoff.normalizeDraft(savedDraft, data.prototypes.map(item => item.id), { stages: data.stages, activeStageId: data.project.activeStageId, stageSelectionRevision: data.project.stageSelectionRevision });
+      const selected = new Set(draft.selectedIds);
+      const notes = new Map(Object.entries(draft.notes));
+      let stages = draft.stages, activeStageId = draft.activeStageId, iterationMode = draft.iterationMode;
+      let stageSelectionRevision = draft.stageSelectionRevision;
       const timeline = document.getElementById('prototype-grid');
       const output = document.getElementById('handoff-text');
       const feedback = document.getElementById('copy-feedback');
+      const generalNotes = document.getElementById('general-notes'); generalNotes.value = draft.general;
+      const referenceList = document.getElementById('selected-references');
       const navLinks = [...document.querySelectorAll('.nav-link')];
       const toolbar = document.getElementById('selection-tools');
       const toolbarSentinel = document.getElementById('toolbar-sentinel');
       const skeletonDemo = data.project.dashboardSkeleton === true;
       let copyQueue = Promise.resolve();
+      let draftRevision = 0;
 
       function syncToolbar() {
         const stickyTop = parseFloat(getComputedStyle(toolbar).top) || 0;
@@ -66,10 +96,18 @@
       syncToolbar();
 
       function syncNav() {
-        const target = navLinks.some(link => link.getAttribute('href') === window.location.hash) ? window.location.hash : '#workspace';
+        const stageView = window.location.hash === '#stages' || window.location.hash.startsWith('#stage-');
+        document.getElementById('history-view').hidden = stageView;
+        document.getElementById('stages').hidden = !stageView;
+        const target = stageView ? '#stages' : navLinks.some(link => link.getAttribute('href') === window.location.hash) ? window.location.hash : '#workspace';
         navLinks.forEach(link => {
           if (link.getAttribute('href') === target) link.setAttribute('aria-current', 'location');
           else link.removeAttribute('aria-current');
+        });
+        requestAnimationFrame(() => {
+          const anchor = document.getElementById(window.location.hash.slice(1));
+          if (anchor) anchor.scrollIntoView({ block: 'start' });
+          syncToolbar();
         });
       }
       window.addEventListener('hashchange', syncNav);
@@ -89,8 +127,10 @@
         projectBrief.textContent = data.project.brief || '等待输入设计需求。';
       }
       const latest = data.batches.at(-1);
-      document.getElementById('hero-eyebrow').textContent = `DESIGN HISTORY / ${data.batches.length} ROUNDS`;
-      document.getElementById('timeline-title').textContent = `设计时间线 · ${data.batches.length} 轮`;
+      const explorationBatches = data.batches.filter(batch => batch.mode !== 'refine');
+      const latestExploration = explorationBatches.at(-1);
+      document.getElementById('hero-eyebrow').textContent = `DESIGN HISTORY / ${explorationBatches.length} ROUNDS`;
+      document.getElementById('timeline-title').textContent = `设计时间线 · ${explorationBatches.length} 轮`;
 
       function element(tag, className, value) {
         const node = document.createElement(tag);
@@ -151,14 +191,114 @@
         dl.append(row);
       }
       function selectedIds() { return data.prototypes.filter(item => selected.has(item.id)).map(item => item.id); }
+      function currentStage() { return stages.find(stage => stage.id === activeStageId); }
       function promptText() {
-        const ids = selectedIds();
-        if (!ids.length) return '请先勾选一份或多份原型。';
-        const locationPath = decodeURIComponent(new URL('.', window.location.href).pathname);
-        const count = latest?.ids.length || 6;
-        return `使用 $lottery-ticket-design 继续这个原型项目：${locationPath}\n参考编号：${ids.join(', ')}\n请先查看所选设计的风格记录与 design.css，记录演化方向并锚定新设计系统，再生成 ${count} 份不同的原型，保留旧批次。`;
+        return LotteryTicketHandoff.composeCommand({
+          projectPath: projectURL.protocol === 'file:' ? decodeURIComponent(projectURL.pathname) : projectURL.href,
+          ids: selectedIds(), notes: Object.fromEntries(notes), general: generalNotes.value, count: latestExploration?.ids.length || 6,
+          stages, activeStageId, stageSelectionRevision, mode: iterationMode,
+        });
+      }
+      function syncDraft() {
+        output.value = promptText();
+        draftRevision += 1;
+        feedback.textContent = ''; feedback.classList.remove('is-success');
+        document.getElementById('select-text-button').hidden = true;
+        try {
+          localStorage.setItem(draftKey, JSON.stringify({ version: 2, selectedIds: selectedIds(), notes: Object.fromEntries(notes), general: generalNotes.value, stages, activeStageId, iterationMode, stageSelectionRevision }));
+        } catch (_) { /* Continue with the in-memory draft. */ }
+      }
+      function syncReference(id) {
+        const reference = referenceList.querySelector(`[data-id="${id}"]`);
+        if (!reference) return;
+        const note = (notes.get(id) || '').trim();
+        reference.classList.toggle('has-note', Boolean(note));
+        const stage = currentStage();
+        const baseline = stage && id === (iterationMode === 'refine' ? stage.currentId : stage.acceptedId);
+        reference.querySelector('.reference-state').textContent = baseline ? `阶段稿${note ? ' · 已备注' : ''}` : note ? '已备注' : '添加备注';
+        reference.querySelector('.reference-note').textContent = note || '点击回到方案填写';
+      }
+      function renderReferences(ids) {
+        referenceList.replaceChildren(...ids.map(id => {
+          const reference = element('a', 'selected-reference'); reference.href = `#design-${id}`; reference.dataset.id = id;
+          const head = element('span', 'reference-head'); head.append(element('strong', '', id), element('span', 'reference-state'));
+          reference.append(head, element('span', 'reference-note')); return reference;
+        }));
+        ids.forEach(syncReference);
+      }
+      function syncStageContext() {
+        const stage = currentStage();
+        document.getElementById('stage-context').hidden = !stage;
+        if (!stage) return;
+        document.getElementById('stage-context-title').textContent = `${stage.id} · ${stage.title}`;
+        const link = document.getElementById('stage-current-link');
+        link.textContent = `${stage.currentId} ↗`; link.href = data.prototypes.find(item => item.id === stage.currentId).file;
+        document.getElementById('stage-status').textContent = stage.status === 'refining' ? '优化中 · 待确认' : '已确认';
+        const mode = document.getElementById('iteration-mode'); mode.value = iterationMode;
+        mode.querySelector('[value="explore"]').disabled = stage.status === 'refining';
+        document.getElementById('accept-stage').hidden = stage.status !== 'refining';
+      }
+      function useStage(stageId, mode) {
+        if (activeStageId !== stageId) stageSelectionRevision += 1;
+        activeStageId = stageId;
+        iterationMode = currentStage().status === 'refining' ? 'refine' : mode;
+        selected.clear(); renderTimeline();
+        document.getElementById('stage-notice').textContent = `已选择阶段 ${stageId}，${iterationMode === 'refine' ? '单独优化当前稿' : '后续探索使用该阶段已确认稿'}。`;
+      }
+      function setStage(prototypeId) {
+        const state = LotteryTicketHandoff.promoteStage({ stages, activeStageId, stageSelectionRevision }, prototypeId, new Date().toISOString());
+        stages = state.stages; activeStageId = state.activeStageId; stageSelectionRevision = state.stageSelectionRevision;
+        iterationMode = currentStage().status === 'refining' ? 'refine' : 'explore';
+        selected.clear(); renderTimeline();
+        document.getElementById('stage-notice').textContent = `已将 ${prototypeId} 设为当前阶段 ${activeStageId}。`;
+      }
+      function confirmStage(stageId) {
+        const state = LotteryTicketHandoff.acceptStage({ stages, activeStageId, stageSelectionRevision }, stageId, new Date().toISOString());
+        stages = state.stages; activeStageId = state.activeStageId; stageSelectionRevision = state.stageSelectionRevision; iterationMode = 'explore';
+        selected.clear(); renderTimeline();
+        document.getElementById('stage-notice').textContent = `阶段 ${stageId} 已确认，可以继续下一轮探索。`;
+      }
+      function renderStageLibrary() {
+        const grid = document.getElementById('stage-grid');
+        grid.replaceChildren(...stages.slice().reverse().map(stage => {
+          const item = data.prototypes.find(item => item.id === stage.currentId);
+          const card = element('article', `stage-card${stage.id === activeStageId ? ' is-current' : ''}`); card.id = `stage-${stage.id}`;
+          const visual = element('a', 'stage-card-preview'); visual.href = item.file; visual.setAttribute('aria-label', `查看 ${stage.id} 的 ${stage.currentId}`);
+          const first = item.screens?.[0]; const preview = item.preview || first?.preview;
+          if (skeletonDemo) visual.append(skeletonScreen());
+          else if (preview) { const image = element('img'); image.src = preview; image.alt = item.title; image.loading = 'lazy'; visual.append(image); }
+          else { const frame = element('iframe'); frame.src = first?.file || item.file; frame.title = `${stage.id} 阶段预览`; frame.loading = 'lazy'; frame.tabIndex = -1; visual.append(frame); }
+          const body = element('div', 'stage-card-body');
+          const head = element('div', 'stage-card-heading'); head.append(element('h2', '', `${stage.id} · ${stage.title}`), element('span', 'stage-status', stage.id === activeStageId ? '当前阶段' : '阶段稿'));
+          body.append(head, element('p', 'stage-version-label', `${stage.currentId} · ${stage.status === 'refining' ? '单稿优化中，待确认' : '已确认'} · 起点 ${stage.baseId}`));
+          const actions = element('div', 'stage-card-actions');
+          const open = element('a', 'stage-open', '查看阶段稿 ↗'); open.href = item.file;
+          const choose = element('button', 'button', '设为当前阶段'); choose.type = 'button'; choose.disabled = stage.id === activeStageId;
+          choose.addEventListener('click', () => useStage(stage.id, 'explore'));
+          const refine = element('button', 'button', '单独优化'); refine.type = 'button'; refine.addEventListener('click', () => { useStage(stage.id, 'refine'); window.location.hash = '#handoff'; });
+          actions.append(choose, refine, open);
+          if (stage.status === 'refining') {
+            const accept = element('button', 'button primary', '确认阶段稿'); accept.type = 'button'; accept.addEventListener('click', () => confirmStage(stage.id)); actions.append(accept);
+          }
+          body.append(actions);
+          const versions = [...new Set([stage.baseId, ...data.batches.filter(batch => batch.mode === 'refine' && batch.stageId === stage.id).flatMap(batch => batch.ids)])];
+          const history = element('details', 'stage-versions'); history.append(element('summary', '', `阶段版本 · ${versions.length}`));
+          const list = element('ul');
+          versions.slice().reverse().forEach(id => {
+            const version = data.prototypes.find(item => item.id === id); if (!version) return;
+            const row = element('li'); const link = element('a', '', `${id}${id === stage.currentId ? ' · 当前稿' : ''}${id === stage.acceptedId ? ' · 已确认' : ''}`); link.href = version.file; row.append(link); list.append(row);
+          });
+          history.append(list); body.append(history); card.append(visual, body); return card;
+        }));
+        document.getElementById('stages-empty').hidden = stages.length !== 0;
       }
       function syncSelection() {
+        const stage = currentStage();
+        if (stage) {
+          if (stage.status === 'refining') iterationMode = 'refine';
+          if (iterationMode === 'refine') selected.clear();
+          selected.add(iterationMode === 'refine' ? stage.currentId : stage.acceptedId);
+        }
         const ids = selectedIds();
         const count = document.getElementById('selection-count');
         count.textContent = `已选 ${ids.length} 份`;
@@ -171,11 +311,24 @@
           count.removeAttribute('title');
           count.removeAttribute('aria-label');
         }
-        document.getElementById('clear-button').hidden = ids.length === 0;
+        const clear = document.getElementById('clear-button');
+        clear.hidden = stage ? iterationMode === 'refine' || ids.length <= 1 : ids.length === 0;
+        clear.textContent = stage ? '清空附加参考' : '清空选择';
         document.getElementById('copy-button').disabled = ids.length === 0;
+        document.getElementById('toolbar-copy-prompt').disabled = ids.length === 0;
         document.getElementById('handoff').hidden = ids.length === 0;
-        output.value = promptText();
-        document.querySelectorAll('.card').forEach(card => card.classList.toggle('is-selected', selected.has(card.dataset.id)));
+        document.getElementById('handoff-title').textContent = iterationMode === 'refine' ? '单独优化阶段稿' : '继续迭代';
+        document.getElementById('handoff-hint').textContent = iterationMode === 'refine' ? '每次生成一个新版本，确认满意后再继续探索。' : stage ? '以已确认阶段稿为基线，备注与整体要求会合并到命令。' : '逐份备注与整体要求将合并为一份命令。';
+        renderReferences(ids);
+        document.querySelectorAll('.card').forEach(card => {
+          const checked = selected.has(card.dataset.id);
+          card.classList.toggle('is-selected', checked);
+          const input = card.querySelector('.pick input'); input.checked = checked;
+          input.disabled = Boolean(stage && (iterationMode === 'refine' || card.dataset.id === stage.acceptedId));
+          card.querySelector('.card-note').hidden = !checked;
+        });
+        syncStageContext();
+        syncDraft();
         syncToolbar();
       }
       async function writeClipboard(value) {
@@ -187,16 +340,26 @@
         helper.setAttribute('readonly', '');
         helper.style.cssText = 'position:fixed;top:0;left:-9999px;opacity:0';
         document.body.append(helper);
+        const active = document.activeElement;
+        const selection = typeof active?.selectionStart === 'number' ? [active.selectionStart, active.selectionEnd] : null;
         helper.select();
         let ok = false;
         try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
         helper.remove();
+        if (active?.isConnected) {
+          active.focus({ preventScroll: true });
+          if (selection) active.setSelectionRange(...selection);
+        }
         return ok;
       }
       function queueCopy(value, message) {
+        const revision = draftRevision;
         copyQueue = copyQueue.catch(() => {}).then(async () => {
+          if (revision !== draftRevision) return;
           const ok = await writeClipboard(value);
+          if (revision !== draftRevision) return;
           document.getElementById('select-text-button').hidden = ok;
+          if (!ok) document.getElementById('command-preview').open = true;
           feedback.classList.toggle('is-success', ok);
           feedback.textContent = ok ? message : '复制受限。请选中文字后手动复制。';
         });
@@ -204,6 +367,7 @@
       function renderCard(item) {
         const card = element('article', 'card');
         card.dataset.id = item.id;
+        card.id = `design-${item.id}`;
         const visual = element('div', `card-preview${skeletonDemo ? ' skeleton-preview' : ''}`);
         const firstScreen = item.screens?.[0];
         const preview = item.preview || firstScreen?.preview;
@@ -268,7 +432,29 @@
           metaRow(more, '参考编号', item.parentIds?.join(', ') || '首轮探索');
           details.append(more); body.append(details);
         }
-        card.append(visual, body, link);
+        const noteBlock = element('div', 'card-note'); noteBlock.hidden = !selected.has(item.id);
+        const noteLabel = element('label', 'note-label', '方案备注'); noteLabel.htmlFor = `note-${item.id}`;
+        noteLabel.append(element('span', '', '可选'));
+        const noteInput = element('textarea'); noteInput.id = `note-${item.id}`; noteInput.rows = 3;
+        noteInput.placeholder = '保留什么、调整什么，或与其他方案如何组合…'; noteInput.value = notes.get(item.id) || '';
+        noteInput.setAttribute('aria-label', `${item.id} 方案备注`);
+        noteInput.addEventListener('input', () => {
+          notes.set(item.id, noteInput.value); syncReference(item.id); syncDraft();
+        });
+        noteBlock.append(noteLabel, noteInput);
+        const actions = element('div', 'card-actions');
+        if (item.exportFile) {
+          const download = element('a', 'card-export', '导出原型 ZIP');
+          download.href = item.exportFile; download.download = `${item.id}.zip`; download.setAttribute('aria-label', `导出 ${item.id} 完整原型`);
+          actions.append(download);
+        }
+        const checkpoint = stages.find(stage => [stage.baseId, stage.currentId, stage.acceptedId].includes(item.id));
+        const stageButton = element('button', 'card-stage', checkpoint ? `使用 ${checkpoint.id}` : '设为阶段'); stageButton.type = 'button';
+        stageButton.disabled = Boolean(checkpoint && checkpoint.id === activeStageId);
+        stageButton.addEventListener('click', () => { checkpoint ? useStage(checkpoint.id, 'explore') : setStage(item.id); });
+        actions.append(stageButton);
+        if (checkpoint) visual.append(element('span', 'card-stage-badge', `${checkpoint.id} · ${checkpoint.id === activeStageId ? '当前阶段' : '阶段稿'}`));
+        card.append(visual, body, actions, noteBlock, link);
         return card;
       }
       function renderTimeline() {
@@ -281,9 +467,14 @@
           const marker = element('span', 'timeline-marker');
           marker.setAttribute('aria-hidden', 'true');
           const head = element('header', 'round-meta');
-          const heading = element('h2', '', `第 ${batch.number} 轮 · ${batch.title}`); heading.id = headingId;
+          const round = explorationBatches.findIndex(entry => entry.number === batch.number) + 1;
+          const heading = element('h2', '', batch.mode === 'refine' ? `单稿优化 · ${batch.title}` : `第 ${round} 轮 · ${batch.title}`); heading.id = headingId;
           head.append(heading, element('span', '', `${items.length} 份`));
           if (batch === latest) head.append(element('span', 'round-latest', '最新'));
+          if (batch.stageId) head.append(element('span', 'timeline-stage-label', `${batch.stageId} · ${batch.mode === 'refine' ? '单稿优化' : '阶段探索'} · 基于 ${batch.stageBaseId}`));
+          stages.filter(stage => items.some(item => item.id === stage.baseId)).forEach(stage => {
+            const link = element('a', 'timeline-stage-link', `${stage.id} · ${stage.title}`); link.href = `#stage-${stage.id}`; head.append(link);
+          });
           head.append(element('p', '', batch.brief));
           const cards = element('div', 'grid');
           cards.append(...items.map(renderCard));
@@ -293,24 +484,41 @@
         timeline.replaceChildren(...entries);
         document.getElementById('empty').hidden = entries.length !== 0;
         syncSelection();
+        renderStageLibrary();
       }
       document.getElementById('clear-button').addEventListener('click', () => {
         selected.clear();
         document.querySelectorAll('.pick input').forEach(input => { input.checked = false; });
         syncSelection();
-        feedback.textContent = '选择已清空。';
+        feedback.textContent = currentStage() ? '附加参考已清空，阶段基线保留。' : '选择已清空，备注草稿已保留。';
       });
       document.getElementById('copy-button').addEventListener('click', () => {
         const ids = selectedIds();
         if (!ids.length) { feedback.textContent = '请先勾选原型。'; return; }
         queueCopy(ids.join(', '), `已复制编号：${ids.join(', ')}`);
       });
-      document.getElementById('copy-prompt-button').addEventListener('click', () => {
+      function copyCommand() {
         if (!selected.size) { feedback.textContent = '请先勾选原型。'; return; }
-        queueCopy(promptText(), '已复制迭代指令。');
+        queueCopy(promptText(), '已复制完整迭代命令，包含当前所选方案的备注与整体要求。');
+      }
+      document.getElementById('copy-prompt-button').addEventListener('click', copyCommand);
+      document.getElementById('toolbar-copy-prompt').addEventListener('click', copyCommand);
+      generalNotes.addEventListener('input', syncDraft);
+      document.getElementById('iteration-mode').addEventListener('change', event => {
+        const stage = currentStage();
+        iterationMode = stage.status === 'refining' ? 'refine' : event.target.value;
+        selected.clear(); renderTimeline();
       });
-      document.getElementById('select-text-button').addEventListener('click', () => { output.focus(); output.select(); feedback.textContent = '文字已选中，可以手动复制。'; });
-      renderTimeline();
+      document.getElementById('accept-stage').addEventListener('click', () => confirmStage(activeStageId));
+      document.getElementById('select-text-button').addEventListener('click', () => {
+        document.getElementById('command-preview').open = true;
+        output.focus(); output.select(); output.scrollIntoView({ block: 'nearest' }); feedback.textContent = '文字已选中，可以手动复制。';
+      });
+      const requestedStage = new URL(window.location.href).searchParams.get('stage');
+      if (requestedStage && data.prototypes.some(item => item.id === requestedStage)) {
+        setStage(requestedStage);
+        const clean = new URL(window.location.href); clean.searchParams.delete('stage'); window.history.replaceState(null, '', clean.href);
+      } else renderTimeline();
     })();
   </script>
 </body>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>__ID__ · __TITLE__</title>
+  <!-- __DESIGN_SYSTEM_HEAD__ -->
+  <style>
+    .export-page { width: min(100% - 40px, 1040px); margin: 48px auto; }
+    .export-heading { display: grid; gap: 16px; padding: clamp(24px, 5vw, 48px); }
+    .export-heading h1 { margin: 0; }
+    .export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .export-section { margin-top: 32px; }
+    .export-section h2 { margin: 0 0 14px; font-size: 15px; }
+    .export-screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+    .screen-entry { display: grid; gap: 10px; color: var(--ds-ink); text-decoration: none; }
+    .screen-entry:hover { border-color: var(--ds-accent); }
+    .screen-entry small { color: var(--ds-muted); font-size: 12px; }
+    .export-footer { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; color: var(--ds-muted); font-size: 12px; }
+    .export-note { display: grid; gap: 8px; margin-top: 20px; font-size: 12px; }
+    @media (max-width: 600px) { .export-page { width: calc(100% - 24px); margin: 16px auto; } }
+  </style>
+</head>
+<body>
+  <main class="export-page">
+    <header class="ds-card export-heading">
+      <div><span class="ds-badge">__ID__</span></div>
+      <h1 class="ds-heading">__TITLE__</h1>
+      <p class="ds-copy">__SUMMARY__</p>
+      <nav class="export-actions" aria-label="导出原型入口"><a class="ds-button" data-variant="primary" href="__BOARD__">打开设计画板</a>__SYSTEM__<a class="ds-button" href="metadata.json">设计元数据</a></nav>
+      <div class="export-note">__RUNTIME_NOTE__</div>
+    </header>
+    <section class="export-section" aria-labelledby="screens-title"><h2 id="screens-title">界面</h2><div class="export-screens">__SCREENS__</div></section>
+    <footer class="export-footer"><a href="README.md">查看说明</a><a href="serve.py" download>本地预览脚本</a></footer>
+  </main>
+</body>
+</html>

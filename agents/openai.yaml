@@ -1,4 +1,4 @@
 interface:
   display_name: "Lottery Ticket Design"
-  short_description: "用上下文选项确认需求，生成 6–10 组多界面设计"
-  default_prompt: "使用 $lottery-ticket-design，先结合上下文用选项和自定义输入确认需求，再生成 6–10 组设计。"
+  short_description: "探索 6–10 组多界面设计，支持阶段稿单独优化、备注迭代与导出"
+  default_prompt: "使用 $lottery-ticket-design：新项目先确认需求并探索 6–10 组设计；已有项目按当前阶段和备注继续，单稿优化每次生成 1 稿。"
