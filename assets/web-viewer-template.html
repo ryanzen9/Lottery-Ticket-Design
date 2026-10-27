@@ -1,42 +1,17 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-ltd-shell="web-viewer" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Web 预览 · Lottery Ticket Design</title>
-  <style>
-    :root { color-scheme: dark; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; height: 100dvh; display: flex; flex-direction: column; background: #101112; color: #f4f1e9; }
-    a { color: inherit; text-decoration: none; }
-    button, select { font: inherit; }
-    :focus-visible { outline: 2px solid #a88aff; outline-offset: 3px; }
-    .toolbar { min-height: 64px; padding: 11px clamp(14px, 2.5vw, 32px); display: flex; align-items: center; gap: 18px; border-bottom: 1px solid #303238; }
-    .back { white-space: nowrap; color: #cbc7bd; font-size: 12px; }
-    .back:hover, .raw:hover { color: white; }
-    .title { min-width: 0; flex: 1; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .title strong { font-weight: 600; }
-    .controls { display: flex; align-items: center; gap: 8px; }
-    .controls select, .controls button { min-height: 34px; padding: 6px 10px; border: 1px solid #3c3f44; border-radius: 6px; background: #1c1e21; color: #f4f1e9; font-size: 12px; }
-    .controls button { cursor: pointer; }
-    .raw { white-space: nowrap; color: #cbc7bd; font-size: 12px; }
-    .stage { flex: 1; min-height: 0; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 20px; background: #191b1e; }
-    .sizer { flex: none; position: relative; }
-    .browser { transform-origin: top left; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #54565a; border-radius: 10px; background: #fff; box-shadow: 0 18px 55px #0008; }
-    .chrome { flex: none; height: 40px; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: #eeeff1; color: #5d626a; }
-    .dots { display: flex; gap: 6px; }
-    .dots i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #a9adb3; }
-    .address { flex: 1; max-width: 760px; height: 23px; margin: 0 auto; padding: 3px 12px; overflow: hidden; border: 1px solid #d8dce0; border-radius: 5px; background: #fff; color: #61666e; font-size: 11px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-    iframe { display: block; flex: none; border: 0; background: #fff; }
-    @media (max-width: 700px) { .toolbar { flex-wrap: wrap; gap: 8px 14px; } .title { order: -1; flex-basis: 100%; } .stage { padding: 10px; } }
-  </style>
+  <!-- __DESIGN_SYSTEM_HEAD__ -->
 </head>
 <body>
   <header class="toolbar">
     <a class="back" href="../index.html">← 设计画板</a>
     <div class="title"><strong id="screen-title"></strong> <span id="design-id"></span></div>
     <div class="controls">
-      <label for="viewport" style="font-size:12px;color:#cbc7bd">视口</label>
+      <label for="viewport" style="font-size:12px;color:var(--fg-2)">视口</label>
       <select id="viewport" aria-label="桌面视口">
         <option value="1440x900">1440 × 900</option>
         <option value="1920x1080">1920 × 1080</option>

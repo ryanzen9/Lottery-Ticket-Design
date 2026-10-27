@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>界面</title>
+  <!-- __DESIGN_SYSTEM_HEAD__ -->
+</head>
+<body class="bg-canvas text-ink font-sans">
+  <!-- Replace this starter with the user's real tasks and content.
+       Use the current design.css tokens and ds-* components first. -->
+  <main class="ds-page ds-stack mx-auto max-w-page p-6 md:p-10">
+    <header class="ds-stack">
+      <span class="ds-badge">界面</span>
+      <h1 class="ds-heading text-heading">页面标题</h1>
+      <p class="ds-copy text-muted">根据确认的用户任务编写页面内容。</p>
+    </header>
+    <section class="ds-card ds-stack rounded-card border-line shadow-small">
+      <label class="ds-stack" for="page-input">内容<input class="ds-input" id="page-input" placeholder="请输入内容"></label>
+      <div class="flex flex-wrap gap-3">
+        <button class="ds-button" data-variant="primary" id="open-dialog" type="button">主要操作</button>
+        <button class="ds-button" id="theme-button" type="button" aria-pressed="false">深色主题</button>
+      </div>
+    </section>
+  </main>
+  <dialog class="ds-dialog" id="page-dialog" aria-labelledby="dialog-title">
+    <form method="dialog" class="ds-stack">
+      <h2 id="dialog-title">操作详情</h2>
+      <p class="ds-copy">将此交互替换为该页面的真实任务。</p>
+      <button class="ds-button" data-variant="primary">完成</button>
+    </form>
+  </dialog>
+  <script>
+    document.getElementById('open-dialog').addEventListener('click', () => document.getElementById('page-dialog').showModal());
+    document.getElementById('theme-button').addEventListener('click', event => {
+      const dark = document.documentElement.dataset.theme !== 'dark';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.documentElement.classList.toggle('dark', dark);
+      event.currentTarget.setAttribute('aria-pressed', String(dark));
+      event.currentTarget.textContent = dark ? '浅色主题' : '深色主题';
+    });
+  </script>
+</body>
+</html>

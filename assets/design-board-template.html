@@ -1,107 +1,10 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-ltd-shell="board">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>设计画板 · Lottery Ticket Design</title>
-  <style>
-    :root {
-      --bg: #f0f2ef; --surface: #ffffff; --surface-warm: #f4f6f3; --surface-raised: #fafbf9;
-      --fg: #292f2b; --fg-2: #606b64; --muted: #69746c;
-      --border: #e0e6df; --border-soft: #edf0eb; --accent: #4c6355;
-      --label-bg: #edf3f7; --label-fg: #526b7c; --label-border: #dde7ed;
-      --skeleton: #e6ebe5;
-      --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html { color-scheme: light; }
-    body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
-    a { color: inherit; }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
-    .shell { width: min(100%, 1580px); margin: 0 auto; padding: 22px clamp(14px, 2.5vw, 40px) 40px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
-    .back { display: inline-flex; min-height: 38px; align-items: center; gap: 8px; padding: 0 12px; border-radius: 12px; color: var(--fg-2); font-size: 12px; font-weight: 500; text-decoration: none; transition: background-color .18s ease; }
-    .back:hover { background: #e6ece5; color: var(--fg); }
-    .icon { flex: none; width: 18px; height: 18px; }
-    .project-name { overflow: hidden; max-width: 55%; color: var(--fg-2); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-    .surface { min-height: calc(100vh - 116px); padding: clamp(24px, 3vw, 44px); border: 1px solid var(--border); border-radius: 32px; background: var(--surface); box-shadow: 0 20px 60px #293b2e0d, 0 3px 12px #293b2e05; }
-    .hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 32px; }
-    .hero > div { min-width: 0; flex: 1; }
-    .design-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-    .tag { padding: 4px 9px; border: 1px solid var(--label-border); border-radius: 9px; background: var(--label-bg); color: var(--label-fg); font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
-    .tag.is-neutral { border-color: var(--border-soft); background: var(--surface-warm); color: var(--fg-2); }
-    h1 { margin: 14px 0 0; font: 700 clamp(26px, 3vw, 38px)/1.2 var(--font-body); letter-spacing: -.035em; }
-    .summary { max-width: 720px; margin: 12px 0 0; color: var(--fg-2); font-size: 14px; line-height: 1.7; }
-    .count { display: inline-flex; flex: none; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-warm); color: var(--fg-2); font-size: 12px; }
-    .count .icon { width: 16px; height: 16px; }
-    .board-layout { display: grid; grid-template-columns: minmax(0, 1fr) 264px; align-items: start; gap: 28px; }
-    .screens-panel { min-width: 0; }
-    .section-title { margin: 0 0 16px; font: 600 14px/1.5 var(--font-body); }
-    .facts-panel { position: sticky; top: 24px; padding: 20px; border: 1px solid var(--border-soft); border-radius: 22px; background: var(--surface-raised); }
-    .facts { display: grid; gap: 20px; margin: 0; }
-    .facts div { min-width: 0; }
-    .facts dt { color: var(--muted); font-size: 11px; }
-    .facts dd { margin: 5px 0 0; color: var(--fg-2); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
-    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 20px; }
-    .screen { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); box-shadow: 0 2px 8px #293b2e04; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
-    .screen:only-child { grid-column: 1 / -1; }
-    .screen:hover { border-color: #c4d0c5; box-shadow: 0 8px 22px #293b2e0b; transform: translateY(-2px); }
-    .preview { height: clamp(260px, 25vw, 370px); overflow: hidden; border-bottom: 1px solid var(--border-soft); background: var(--surface-warm); }
-    .screen:only-child .preview { height: clamp(300px, 38vw, 520px); }
-    .preview img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-    .preview iframe { width: 100%; height: 100%; border: 0; background: white; pointer-events: none; }
-    .preview-web { display: flex; flex-direction: column; }
-    .preview-web .mini-chrome { flex: none; height: 29px; display: flex; align-items: center; gap: 5px; padding: 0 12px; border-bottom: 1px solid var(--border-soft); background: #f6f8f5; }
-    .preview-web .mini-chrome i { width: 5px; height: 5px; border-radius: 50%; background: #c1cbc0; }
-    .web-canvas { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #fff; }
-    .preview-web .web-canvas iframe { position: absolute; top: 0; left: 0; width: 1440px; height: 900px; transform-origin: top left; }
-    .preview-web img { flex: 1; min-height: 0; }
-    .preview-mobile { display: grid; place-items: center; min-height: 320px; }
-    .mini-phone { position: relative; width: 138px; height: 286px; padding: 6px; border: 1px solid #85898c; border-radius: 29px; background: #101113; box-shadow: 0 12px 25px #293b2e1a; }
-    .mini-screen { width: 124px; height: 272px; overflow: hidden; border-radius: 23px; background: #fff; }
-    .mini-screen iframe { width: 402px; height: 874px; transform: scale(.30846); transform-origin: top left; }
-    .mini-screen img { width: 100%; height: 100%; object-fit: cover; }
-    .mini-phone::after { content: ''; position: absolute; top: 10px; left: 50%; width: 42px; height: 12px; border-radius: 9px; background: #08090a; transform: translateX(-50%); pointer-events: none; }
-    .screen-body { display: flex; justify-content: space-between; align-items: start; gap: 14px; padding: 18px 20px 20px; }
-    .screen-body > div { min-width: 0; }
-    .screen-id { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-    .screen h3 { margin: 6px 0 0; font: 650 18px/1.4 var(--font-body); letter-spacing: -.02em; }
-    .screen-summary { margin: 7px 0 0; color: var(--fg-2); font-size: 12px; line-height: 1.65; }
-    .open-label { display: inline-flex; flex: none; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid var(--label-border); border-radius: 9px; background: var(--label-bg); color: var(--label-fg); font-size: 10px; }
-    .open-label .icon { width: 13px; height: 13px; }
-    .screen-link { position: absolute; inset: 0; font-size: 0; }
-    .screen-link:focus-visible { outline-offset: -5px; }
-    .skeleton-line { display: block; width: 100%; height: 10px; border-radius: 6px; background: var(--skeleton); }
-    .skeleton-line.is-short { width: 44%; }
-    .skeleton-line.is-medium { width: 68%; }
-    .skeleton-line.is-long { width: 88%; }
-    .skeleton-line.is-project { width: 96px; }
-    .skeleton-line.is-label { width: 62px; }
-    .skeleton-line.is-count { width: 44px; }
-    .skeleton-line.is-title { width: 280px; max-width: 100%; height: clamp(30px, 3vw, 40px); border-radius: 10px; }
-    .skeleton-line.is-screen-title { width: 128px; max-width: 100%; height: 20px; border-radius: 7px; }
-    .skeleton-copy { display: grid; gap: 10px; }
-    .tag .skeleton-line { margin: 3px 0; }
-    .facts dd.skeleton-copy { gap: 7px; padding-top: 3px; }
-    .screen-body > .skeleton-screen-copy { flex: 1; }
-    .skeleton-app { display: grid; grid-template-columns: 22% minmax(0, 1fr); width: 100%; height: 100%; background: #fcfdfb; }
-    .skeleton-app-rail { display: grid; align-content: start; gap: 16px; padding: 24px 12px; border-right: 1px solid var(--border-soft); }
-    .skeleton-app-main { display: grid; min-width: 0; align-content: start; gap: 16px; padding: 24px; }
-    .skeleton-app-main > .skeleton-line:first-child { height: 16px; border-radius: 7px; }
-    .skeleton-block { height: 76px; border-radius: 14px; background: #edf1eb; }
-    .skeleton-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    .skeleton-tiles .skeleton-block { height: 68px; }
-    .skeleton-mobile { display: grid; align-content: start; gap: 10px; height: 100%; padding: 32px 12px 16px; background: #fcfdfb; }
-    .skeleton-mobile .skeleton-line { height: 5px; border-radius: 3px; }
-    .skeleton-mobile > .skeleton-line:first-child { height: 9px; }
-    .skeleton-mobile .skeleton-block { height: 62px; border-radius: 9px; }
-    .skeleton-mobile .skeleton-tiles { gap: 6px; }
-    .skeleton-mobile .skeleton-tiles .skeleton-block { height: 46px; border-radius: 7px; }
-    @media (max-width: 1180px) { .board-layout { grid-template-columns: 1fr; } .facts-panel { position: static; } .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; } }
-    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } .surface { padding: 26px; border-radius: 26px; } .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .preview { height: 360px; } }
-    @media (max-width: 520px) { .shell { padding: 14px 12px 24px; } .surface { padding: 22px 18px; border-radius: 24px; } .topbar { gap: 10px; } .back { padding: 0 6px; } .hero { display: block; margin-bottom: 26px; } .count { margin-top: 16px; } .preview, .screen:only-child .preview { height: 280px; } .screen-body { padding: 16px; } .facts { grid-template-columns: 1fr; } .facts-panel { padding: 18px; } }
-    @media (prefers-reduced-motion: reduce) { .screen { transition: none; } }
-  </style>
+  <!-- __DESIGN_SYSTEM_HEAD__ -->
 </head>
 <body>
   <main class="shell">
@@ -118,18 +21,74 @@
         </div>
         <span class="count"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span id="screen-count"></span></span>
       </header>
-      <div class="board-layout">
-        <section class="screens-panel" aria-labelledby="screens-heading">
-          <h2 class="section-title" id="screens-heading">界面画板</h2>
-          <div class="grid" id="screen-grid"></div>
-        </section>
-        <aside class="facts-panel" aria-labelledby="facts-heading">
+      <section class="screens-panel" aria-labelledby="screens-heading">
+          <h2 class="section-title" id="screens-heading">设计画板</h2>
+          <div class="bento-grid" id="screen-grid"></div>
+      </section>
+        <aside class="facts-panel" id="facts-panel" aria-labelledby="facts-heading">
           <h2 class="section-title" id="facts-heading">设计元数据</h2>
           <dl class="facts" id="design-facts"></dl>
         </aside>
-      </div>
     </div>
   </main>
+  <template id="system-specimen-template">
+    <style>
+      :host { display: block; min-width: 0; container-type: inline-size; color: var(--ds-ink); font: 400 var(--ds-text-body)/1.6 var(--ds-font-body); }
+      .ltd-specimens { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+      .ltd-cell { grid-column: span 3; min-width: 0; padding: 22px; border: 1px solid var(--ds-line); border-radius: var(--ds-radius-card); background: var(--ds-canvas); }
+      .ltd-cell h4 { margin: 0 0 20px; color: var(--ds-muted); font: 500 12px/1.5 var(--ds-font-body); }
+      .ltd-palette { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+      .ltd-swatch { min-width: 0; }
+      .ltd-paint { height: 34px; margin-bottom: 6px; border: 1px solid var(--ds-line); border-radius: var(--ds-radius-control); background: var(--paint); }
+      .ltd-swatch span { display: block; font-size: 11px; }
+      .ltd-swatch small { display: block; color: var(--ds-faint); font: 9px/1.6 var(--ds-font-mono); overflow-wrap: anywhere; }
+      .ltd-type { display: grid; align-content: start; gap: 12px; }
+      .ltd-type .ds-heading { overflow-wrap: anywhere; }
+      .ltd-type .ds-copy { font-size: var(--ds-text-body); }
+      .ltd-caption { color: var(--ds-faint); font-size: var(--ds-text-caption); }
+      .ltd-shapes { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+      .ltd-shape { width: 44px; height: 44px; border: 1px solid var(--ds-line); background: var(--ds-surface); box-shadow: var(--ds-shadow-small); }
+      .ltd-controls { grid-column: span 6; }
+      .ltd-controls .ds-card { display: grid; gap: 18px; }
+      .ltd-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+      .ltd-field { display: grid; gap: 7px; font-size: 12px; }
+      .ltd-choice { display: inline-flex; align-items: center; gap: 7px; color: var(--ds-muted); font-size: 12px; }
+      .ltd-choice .ds-checkbox { margin: 0; }
+      .ltd-option-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+      .ltd-state { min-height: 25px; }
+      @container (max-width: 1000px) { .ltd-cell { grid-column: span 6; } .ltd-controls { grid-column: 1 / -1; } .ltd-palette { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+      @container (max-width: 560px) { .ltd-cell { grid-column: 1 / -1; padding: 18px; } }
+    </style>
+    <div class="ltd-specimens">
+      <section class="ltd-cell" aria-labelledby="palette-title">
+        <h4 id="palette-title">色彩</h4>
+        <div class="ltd-palette">
+          <div class="ltd-swatch" data-swatch><div class="ltd-paint" style="--paint: var(--ds-canvas)"></div><span>背景</span><small></small></div>
+          <div class="ltd-swatch" data-swatch><div class="ltd-paint" style="--paint: var(--ds-surface)"></div><span>面板</span><small></small></div>
+          <div class="ltd-swatch" data-swatch><div class="ltd-paint" style="--paint: var(--ds-ink)"></div><span>文字</span><small></small></div>
+          <div class="ltd-swatch" data-swatch><div class="ltd-paint" style="--paint: var(--ds-accent)"></div><span>强调</span><small></small></div>
+          <div class="ltd-swatch" data-swatch><div class="ltd-paint" style="--paint: var(--ds-success)"></div><span>成功</span><small></small></div>
+          <div class="ltd-swatch" data-swatch><div class="ltd-paint" style="--paint: var(--ds-label)"></div><span>分类</span><small></small></div>
+        </div>
+      </section>
+      <section class="ltd-cell" aria-labelledby="type-title">
+        <h4 id="type-title">字体与形状</h4>
+        <div class="ltd-type"><div class="ds-heading">Aa 文</div><p class="ds-copy">正文与界面文字</p><span class="ltd-caption">辅助信息与说明</span></div>
+        <div class="ltd-shapes" aria-label="控件、卡片与面板圆角"><span class="ltd-shape" style="border-radius: var(--ds-radius-control)"></span><span class="ltd-shape" style="border-radius: var(--ds-radius-card)"></span><span class="ltd-shape" style="border-radius: var(--ds-radius-surface)"></span></div>
+      </section>
+      <section class="ltd-cell ltd-controls" aria-labelledby="controls-title">
+        <h4 id="controls-title">组件与状态</h4>
+        <div class="ds-card">
+          <div class="ltd-row"><button class="ds-button" data-variant="primary" type="button">主要按钮</button><button class="ds-button" type="button">次要按钮</button><button class="ds-button" type="button" disabled>禁用</button></div>
+          <label class="ltd-field">文本输入<input class="ds-input" placeholder="输入内容"></label>
+          <div class="ltd-option-row"><label class="ltd-choice"><input class="ds-checkbox" type="checkbox" checked>选项</label><span class="ltd-choice">开关<button class="ds-switch" role="switch" aria-checked="true" aria-label="组件开关" type="button"></button></span></div>
+          <div class="ds-tabs" role="tablist" aria-label="组件状态"><button role="tab" id="state-default" aria-controls="state-default-panel" aria-selected="true" type="button">默认</button><button role="tab" id="state-feedback" aria-controls="state-feedback-panel" aria-selected="false" tabindex="-1" type="button">状态反馈</button></div>
+          <div class="ltd-state" id="state-default-panel" role="tabpanel" aria-labelledby="state-default"><span class="ds-badge">分类标签</span></div>
+          <div class="ltd-row ltd-state" id="state-feedback-panel" role="tabpanel" aria-labelledby="state-feedback" hidden><span class="ds-badge" data-tone="success">成功</span><span class="ds-badge" data-tone="warning">注意</span><span class="ds-badge" data-tone="danger">错误</span></div>
+        </div>
+      </section>
+    </div>
+  </template>
   <script type="application/json" id="design-data">__DESIGN_DATA_JSON__</script>
   <script>
     (() => {
@@ -157,6 +116,72 @@
         tiles.append(element('div', 'skeleton-block'), element('div', 'skeleton-block'));
         main.append(skeletonLine('is-medium'), skeletonLine('is-long'), element('div', 'skeleton-block'), tiles, skeletonLine(), skeletonLine('is-medium'));
         return shell;
+      }
+      function openLabel(text) {
+        const label = element('span', 'open-label'); label.textContent = text;
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        for (const [key, value] of Object.entries({ class: 'icon', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) arrow.setAttribute(key, value);
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M7 17 17 7M7 7h10v10');
+        arrow.append(path); label.append(arrow); return label;
+      }
+      function fitPreview(content, frame, width, height) {
+        const resize = () => {
+          const scale = Math.min(content.clientWidth / width, content.clientHeight / height);
+          frame.style.transform = `scale(${scale})`;
+          frame.style.left = `${(content.clientWidth - width * scale) / 2}px`;
+          frame.style.top = `${(content.clientHeight - height * scale) / 2}px`;
+        };
+        new ResizeObserver(resize).observe(content);
+      }
+      function systemPanel() {
+        const panel = element('section', 'system-panel'); panel.setAttribute('aria-labelledby', 'system-heading');
+        const header = element('div', 'system-panel-header');
+        const title = element('h3'); title.id = 'system-heading'; title.textContent = '设计系统';
+        const actions = element('div', 'system-panel-actions');
+        const theme = element('button', 'system-theme'); theme.type = 'button'; theme.textContent = '深色预览'; theme.setAttribute('aria-pressed', 'false');
+        const link = element('a', 'system-full-link'); link.href = design.systemFile; link.append(openLabel('完整规范'));
+        actions.append(theme, link); header.append(title, actions);
+        const host = element('div', 'system-specimens'); host.dataset.theme = 'light';
+        const root = host.attachShadow({ mode: 'open' });
+        const source = element('style');
+        // Keep the design's native components and tokens inside the showcase.
+        source.textContent = design.systemCss.replace(/:root((?:\.[\w-]+|\[[^\]]+\])*)/g, (_, condition) => condition ? `:host(${condition})` : ':host');
+        root.append(source, document.getElementById('system-specimen-template').content.cloneNode(true));
+        function refreshSwatches() {
+          root.querySelectorAll('[data-swatch]').forEach(swatch => {
+            const value = getComputedStyle(swatch.querySelector('.ltd-paint')).backgroundColor;
+            swatch.title = value;
+            const rgb = value.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            swatch.querySelector('small').textContent = rgb ? '#' + rgb.slice(1).map(channel => Number(channel).toString(16).padStart(2, '0')).join('') : value;
+          });
+        }
+        theme.addEventListener('click', () => {
+          const dark = host.dataset.theme !== 'dark'; host.dataset.theme = dark ? 'dark' : 'light';
+          theme.setAttribute('aria-pressed', String(dark)); theme.textContent = dark ? '浅色预览' : '深色预览'; refreshSwatches();
+        });
+        root.querySelector('[role="switch"]').addEventListener('click', event => {
+          event.currentTarget.setAttribute('aria-checked', String(event.currentTarget.getAttribute('aria-checked') !== 'true'));
+        });
+        const tabs = [...root.querySelectorAll('[role="tab"]')];
+        function selectTab(tab) {
+          tabs.forEach(node => {
+            const selected = node === tab; node.setAttribute('aria-selected', String(selected)); node.tabIndex = selected ? 0 : -1;
+            root.getElementById(node.getAttribute('aria-controls')).hidden = !selected;
+          });
+        }
+        tabs.forEach((tab, index) => {
+          tab.addEventListener('click', () => selectTab(tab));
+          tab.addEventListener('keydown', event => {
+            let next;
+            if (event.key === 'ArrowRight') next = tabs[(index + 1) % tabs.length];
+            if (event.key === 'ArrowLeft') next = tabs[(index + tabs.length - 1) % tabs.length];
+            if (event.key === 'Home') next = tabs[0]; if (event.key === 'End') next = tabs.at(-1);
+            if (next) { event.preventDefault(); selectTab(next); next.focus(); }
+          });
+        });
+        panel.append(header, host);
+        requestAnimationFrame(refreshSwatches);
+        return panel;
       }
       document.title = skeletonDemo ? `${design.id} · 设计画板 · Lottery Ticket Design` : `${design.id} ${design.title} · Lottery Ticket Design`;
       document.getElementById('design-id').textContent = design.id;
@@ -194,8 +219,19 @@
         row.append(term, value); facts.append(row);
       }
       const grid = document.getElementById('screen-grid');
+      const hasSystem = Boolean(design.systemFile && design.systemCss);
+      const additionalScreens = design.screens.length - 1;
+      const secondaryCards = [];
+      const factsPanel = document.getElementById('facts-panel');
+      if (hasSystem) grid.append(systemPanel());
       design.screens.forEach((screen, index) => {
         const card = document.createElement('article'); card.className = 'screen';
+        if (index === 0) card.classList.add('is-featured');
+        else {
+          secondaryCards.push(card);
+          if (additionalScreens % 3 === 1 && index === design.screens.length - 1) card.classList.add('is-full');
+          if (additionalScreens % 3 === 2 && index === design.screens.length - 2) card.classList.add('is-wide');
+        }
         const mobile = screen.viewer === 'iphone-18-pro';
         const preview = document.createElement('div'); preview.className = `preview ${mobile ? 'preview-mobile' : 'preview-web'}`;
         let content = preview;
@@ -216,12 +252,7 @@
         } else {
           const frame = document.createElement('iframe'); frame.src = screen.file; frame.title = `${screen.title} 缩略预览`; frame.loading = 'lazy'; frame.tabIndex = -1; content.append(frame);
           if (!mobile) {
-            const sizePreview = () => {
-              const scale = Math.min(content.clientWidth / 1440, content.clientHeight / 900);
-              frame.style.transform = `scale(${scale})`;
-              frame.style.left = `${(content.clientWidth - 1440 * scale) / 2}px`;
-            };
-            new ResizeObserver(sizePreview).observe(content);
+            fitPreview(content, frame, 1440, 900);
           }
         }
         const body = document.createElement('div'); body.className = 'screen-body';
@@ -236,15 +267,12 @@
         if (skeletonDemo) {
           const summary = element('p', 'screen-summary skeleton-copy'); summary.append(skeletonLine('is-long'), skeletonLine('is-medium')); summary.setAttribute('aria-label', '界面说明待生成'); copy.append(summary);
         } else if (screen.summary) { const summary = document.createElement('p'); summary.className = 'screen-summary'; summary.textContent = screen.summary; copy.append(summary); }
-        const openLabel = document.createElement('span'); openLabel.className = 'open-label'; openLabel.textContent = mobile ? 'iPhone 18 Pro' : 'Web';
-        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        for (const [key, value] of Object.entries({ class: 'icon', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) arrow.setAttribute(key, value);
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M7 17 17 7M7 7h10v10');
-        arrow.append(path); openLabel.append(arrow);
-        body.append(copy, openLabel);
+        body.append(copy, openLabel(mobile ? 'iPhone 18 Pro' : 'Web'));
         const link = document.createElement('a'); link.className = 'screen-link'; link.href = screen.viewerFile || screen.file; link.textContent = skeletonDemo ? `预览界面 ${index + 1}` : `体验 ${screen.title}`;
         card.append(preview, body, link); grid.append(card);
+        if (index === 0) grid.append(factsPanel);
       });
+      if (secondaryCards.length % 2 === 1) secondaryCards.at(-1).classList.add('is-tablet-wide');
     })();
   </script>
 </body>

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "project": {
     "title": "原型方案",
     "brief": "演示批次：六种查看、比较和筛选原型的界面。",
@@ -11,7 +11,7 @@
       "stylePreferences": "仪表盘为浅灰底板与悬浮白色面板；每份原型可探索不同视觉语言",
       "interactionPreferences": "明确的选择与复制反馈，适度动效",
       "mustHave": "预览、编号、设计元数据、批量勾选",
-      "constraints": "可离线打开的静态 HTML",
+      "constraints": "本地静态 HTML；Tailwind CSS v4 CDN，首次加载需要联网",
       "prototypeCount": 6
     }
   },
@@ -84,7 +84,9 @@
         }
       ],
       "elements": "大幅预览、细边卡片、编号角标；移动端含底部导航与保留按钮",
-      "typography": "Georgia / 宋体标题＋系统无衬线正文"
+      "typography": "Georgia / 宋体标题＋系统无衬线正文",
+      "designSystem": "prototypes/P-001/design.css",
+      "styleHistory": "prototypes/P-001/style-history.json"
     },
     {
       "id": "P-002",
@@ -123,7 +125,9 @@
         }
       ],
       "elements": "双预览面板、四项指标、偏好按钮",
-      "typography": "系统无衬线，粗体数字突出指标"
+      "typography": "系统无衬线，粗体数字突出指标",
+      "designSystem": "prototypes/P-002/design.css",
+      "styleHistory": "prototypes/P-002/style-history.json"
     },
     {
       "id": "P-003",
@@ -162,7 +166,9 @@
         }
       ],
       "elements": "状态泳道、原型卡、添加按钮",
-      "typography": "Georgia / 宋体标题＋系统无衬线正文"
+      "typography": "Georgia / 宋体标题＋系统无衬线正文",
+      "designSystem": "prototypes/P-003/design.css",
+      "styleHistory": "prototypes/P-003/style-history.json"
     },
     {
       "id": "P-004",
@@ -201,7 +207,9 @@
         }
       ],
       "elements": "坐标轴、浮动节点、维度勾选框",
-      "typography": "Georgia / 宋体标题＋等宽标签＋系统正文"
+      "typography": "Georgia / 宋体标题＋等宽标签＋系统正文",
+      "designSystem": "prototypes/P-004/design.css",
+      "styleHistory": "prototypes/P-004/style-history.json"
     },
     {
       "id": "P-005",
@@ -240,7 +248,9 @@
         }
       ],
       "elements": "大画布、评审侧栏、底部缩略条",
-      "typography": "Georgia / 宋体标题＋系统无衬线正文"
+      "typography": "Georgia / 宋体标题＋系统无衬线正文",
+      "designSystem": "prototypes/P-005/design.css",
+      "styleHistory": "prototypes/P-005/style-history.json"
     },
     {
       "id": "P-006",
@@ -279,7 +289,9 @@
         }
       ],
       "elements": "评分矩阵、状态高亮、图例",
-      "typography": "Georgia / 宋体标题＋系统无衬线数据标签"
+      "typography": "Georgia / 宋体标题＋系统无衬线数据标签",
+      "designSystem": "prototypes/P-006/design.css",
+      "styleHistory": "prototypes/P-006/style-history.json"
     }
   ]
 }

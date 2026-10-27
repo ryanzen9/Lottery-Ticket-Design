@@ -9,6 +9,7 @@ import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
+import design_system as ds
 
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
@@ -16,6 +17,7 @@ TEMPLATE = SKILL_DIR / "assets" / "dashboard-template.html"
 DESIGN_TEMPLATE = SKILL_DIR / "assets" / "design-board-template.html"
 WEB_VIEWER_TEMPLATE = SKILL_DIR / "assets" / "web-viewer-template.html"
 IPHONE_VIEWER_TEMPLATE = SKILL_DIR / "assets" / "iphone-18-pro-viewer-template.html"
+SYSTEM_TEMPLATE = SKILL_DIR / "assets" / "design-system-board-template.html"
 ID_PATTERN = re.compile(r"P-\d{3,}$")
 SCREEN_ID_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]*$")
 VIEWER_TYPES = ("web", "iphone-18-pro")
@@ -60,8 +62,8 @@ def within(value: str, folder: Path) -> bool:
 
 
 def validate(project_dir: Path, data: dict) -> None:
-    if not isinstance(data, dict) or data.get("schemaVersion") not in (1, 2):
-        fail("manifest.json requires schemaVersion: 1 or 2")
+    if not isinstance(data, dict) or data.get("schemaVersion") not in (1, 2, 3):
+        fail("manifest.json requires schemaVersion: 1, 2 or 3")
     project = data.get("project")
     if not isinstance(project, dict) or not all(isinstance(project.get(key), str) and project[key].strip() for key in ("title", "brief")):
         fail("project.title and project.brief are required")
@@ -122,7 +124,7 @@ def validate(project_dir: Path, data: dict) -> None:
             fail(f"prototype {proto_id} has wrong batch")
         if not all(isinstance(item.get(key), str) and item[key].strip() for key in REQUIRED_TEXT):
             fail(f"prototype {proto_id} has missing design metadata")
-        if data["schemaVersion"] == 2 and not all(
+        if data["schemaVersion"] >= 2 and not all(
             isinstance(item.get(key), str) and item[key].strip() for key in KEY_DESIGN_FIELDS
         ):
             fail(f"prototype {proto_id} requires layout, style, palette, elements, motion, typography and interaction")
@@ -162,7 +164,7 @@ def validate(project_dir: Path, data: dict) -> None:
         seen_files.add(item["file"])
         screens = item.get("screens")
         if screens is None:
-            if data["schemaVersion"] == 2:
+            if data["schemaVersion"] >= 2:
                 fail(f"prototype {proto_id} requires a design folder and screens")
             safe_file(project_dir, item["file"], ".html")
             if item.get("preview"):
@@ -173,6 +175,11 @@ def validate(project_dir: Path, data: dict) -> None:
         folder = Path("prototypes") / proto_id
         if item["file"] != (folder / "index.html").as_posix():
             fail(f"prototype {proto_id} board must be {folder / 'index.html'}")
+        if data["schemaVersion"] >= 3 or item.get("designSystem"):
+            ds.validate(project_dir, item)
+            exceptions = item.get("styleExceptions", [])
+            if not isinstance(exceptions, list) or any(not isinstance(x, dict) or not all(isinstance(x.get(k), str) and x[k].strip() for k in ("scope", "reason")) for x in exceptions):
+                fail(f"prototype {proto_id} styleExceptions require scope and reason")
         safe_generated_file(project_dir, item["file"], ".html")
         if not isinstance(screens, list) or not screens:
             fail(f"prototype {proto_id} requires at least one screen")
@@ -227,6 +234,7 @@ def render(project_dir: Path) -> None:
     manifest_path = project_dir / "manifest.json"
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
     validate(project_dir, data)
+    shell_css = ds.ensure_shell(project_dir)
     design_template = DESIGN_TEMPLATE.read_text(encoding="utf-8")
     viewer_templates = {
         "web": WEB_VIEWER_TEMPLATE.read_text(encoding="utf-8"),
@@ -236,6 +244,21 @@ def render(project_dir: Path) -> None:
         if "screens" not in item:
             continue
         folder = Path(item["file"]).parent
+        system_files = {}
+        if item.get("designSystem"):
+            design_css = ds.path_in(project_dir, item["designSystem"], ".css")
+            for screen in item["screens"]:
+                screen_path = project_dir / screen["file"]
+                screen_path.write_text(ds.inject(screen_path.read_text(encoding="utf-8"), design_css, screen_path), encoding="utf-8")
+            current_style = ds.validate(project_dir, item)
+            system_path = project_dir / folder / "system.html"
+            safe_generated_file(project_dir, (folder / "system.html").as_posix(), ".html")
+            system_source = embed(SYSTEM_TEMPLATE.read_text(encoding="utf-8"), "__SYSTEM_DATA_JSON__", {
+                "designId": item["id"], "revision": current_style["revision"],
+                "description": current_style["description"], "style": current_style["style"],
+            })
+            system_path.write_text(ds.inject(system_source, design_css, system_path), encoding="utf-8")
+            system_files = {"systemFile": "system.html", "systemCss": design_css.read_text(encoding="utf-8")}
         viewer_dir = project_dir / folder / "viewers"
         viewer_dir.mkdir(exist_ok=True)
         screens = []
@@ -253,9 +276,9 @@ def render(project_dir: Path) -> None:
                 "screenFile": "../" + local_screen["file"],
                 "statusBar": screen.get("statusBar", "dark"),
             }
-            (project_dir / viewer_project_path).write_text(
-                embed(viewer_templates[viewer_type], "__VIEWER_DATA_JSON__", viewer_payload), encoding="utf-8"
-            )
+            viewer_path = project_dir / viewer_project_path
+            viewer_source = embed(viewer_templates[viewer_type], "__VIEWER_DATA_JSON__", viewer_payload)
+            viewer_path.write_text(ds.inject(viewer_source, shell_css, viewer_path), encoding="utf-8")
             local_screen["viewer"] = viewer_type
             local_screen["viewerFile"] = viewer_relative.as_posix()
             if screen.get("preview"):
@@ -265,13 +288,15 @@ def render(project_dir: Path) -> None:
                    "skeletonDemo": data["project"].get("dashboardSkeleton") is True, "design": {
             "id": item["id"], "title": item["title"], "direction": item["direction"],
             "summary": item["summary"], "screens": screens,
+            **system_files,
             **{key: item.get(key, "") for key in KEY_DESIGN_FIELDS},
         }}
-        (project_dir / item["file"]).write_text(
-            embed(design_template, "__DESIGN_DATA_JSON__", payload), encoding="utf-8"
-        )
+        board_path = project_dir / item["file"]
+        board_source = embed(design_template, "__DESIGN_DATA_JSON__", payload)
+        board_path.write_text(ds.inject(board_source, shell_css, board_path), encoding="utf-8")
     template = TEMPLATE.read_text(encoding="utf-8")
-    (project_dir / "index.html").write_text(embed(template, "__BOARD_DATA_JSON__", data), encoding="utf-8")
+    dashboard_path = project_dir / "index.html"
+    dashboard_path.write_text(ds.inject(embed(template, "__BOARD_DATA_JSON__", data), shell_css, dashboard_path), encoding="utf-8")
     count = sum("screens" in item for item in data["prototypes"])
     print(f"Rendered {project_dir / 'index.html'} ({len(data['batches'])} batches, {len(data['prototypes'])} designs, {count} design boards)")
 
@@ -282,7 +307,7 @@ def init(project_dir: Path, title: str, brief: str) -> None:
     project_dir.mkdir(parents=True, exist_ok=True)
     (project_dir / "prototypes").mkdir(exist_ok=True)
     (project_dir / "previews").mkdir(exist_ok=True)
-    data = {"schemaVersion": 2, "project": {"title": title, "brief": brief}, "batches": [], "prototypes": []}
+    data = {"schemaVersion": 3, "project": {"title": title, "brief": brief}, "batches": [], "prototypes": []}
     (project_dir / "manifest.json").write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     render(project_dir)
 
@@ -296,10 +321,23 @@ def main() -> int:
     init_parser.add_argument("--brief", required=True)
     render_parser = commands.add_parser("render")
     render_parser.add_argument("project_dir", type=Path)
+    prepare_parser = commands.add_parser("prepare", help="record style metadata before editing a design system")
+    prepare_parser.add_argument("project_dir", type=Path)
+    prepare_parser.add_argument("--id", required=True)
+    prepare_parser.add_argument("--description", required=True)
+    prepare_parser.add_argument("--from", dest="parent_id")
+    anchor_parser = commands.add_parser("anchor", help="anchor design.css before writing screens")
+    anchor_parser.add_argument("project_dir", type=Path)
+    anchor_parser.add_argument("--id", required=True)
+    anchor_parser.add_argument("--description")
     args = parser.parse_args()
     try:
         if args.command == "init":
             init(args.project_dir, args.title, args.brief)
+        elif args.command == "prepare":
+            ds.prepare(args.project_dir, args.id, args.description, args.parent_id)
+        elif args.command == "anchor":
+            ds.anchor(args.project_dir, args.id, args.description)
         else:
             render(args.project_dir)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
